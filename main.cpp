@@ -9,5 +9,7 @@ int main ()
     ByteToASM ("byte.txt", "my_asm.txt");
 
     SPU ("byte.txt");
+
+    printf ("\n\nEND!");
 }
 
