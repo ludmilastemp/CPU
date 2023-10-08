@@ -1,50 +1,48 @@
 #include "asm.h"
 
-static int  TranslateToCPU (FILE* fp, String* strings);
+static int  TranslateToSPU (FILE* fp, String* strings);
 static void STL_Print      (FILE* fp, const char* const fmt, ...);
 
-int ASMToByte (const char* asmFile, const char* byteFile)
+int ASMToBin (const char* asmFile, const char* binFile)
 {
     struct File file = { };
     STL_SplitFileIntoLines (&file, asmFile);
 
-    FILE* fp = fopen (byteFile, "w");
+    FILE* fp = fopen (binFile, "w");
 
     int line = 0;
     while (line < file.nLines)
     {
-        TranslateToCPU (fp, &(file.strings[line++]));
+        TranslateToSPU (fp, &(file.strings[line++]));
     }
 
     fclose (fp);
 }
 
-static int TranslateToCPU (FILE* fp, String* strings)
+static int TranslateToSPU (FILE* fp, String* strings)
 {
     char com[1000] = "0";
 
-    int i = 0;
-    while (strings->str[i] != ' ' && strings->str[i] != '\n')
+    sscanf (strings->str, "%s", com);
+
+    for (int i = 0; i < nFunc; i++)
     {
-        com[i] = strings->str[i];
-        i++;
+        if (strcmp (com, funcText[i]) == 0)
+        {
+            STL_Print (fp, "%d ", i);
+
+            if (i < nFuncWithArguments)
+            {
+                sscanf (strings->str + strlen(com), "%s", com);
+
+                STL_Print (fp, "%s", com);
+            }
+
+            STL_Print (fp, "\n");
+
+            break;
+        }
     }
-
-    if (strcmp (com, "push") == 0) STL_Print (fp, "0 ");
-    if (strcmp (com, "add" ) == 0) STL_Print (fp, "1 ");
-    if (strcmp (com, "sub" ) == 0) STL_Print (fp, "2 ");
-    if (strcmp (com, "mul" ) == 0) STL_Print (fp, "3 ");
-    if (strcmp (com, "div" ) == 0) STL_Print (fp, "4 ");
-    if (strcmp (com, "sqrt") == 0) STL_Print (fp, "5 ");
-    if (strcmp (com, "sin" ) == 0) STL_Print (fp, "6 ");
-    if (strcmp (com, "cos" ) == 0) STL_Print (fp, "7 ");
-    if (strcmp (com, "in"  ) == 0) STL_Print (fp, "8 ");
-    if (strcmp (com, "OUT" ) == 0) STL_Print (fp, "9 ");
-    if (strcmp (com, "HLT" ) == 0) STL_Print (fp, "E ");
-
-    for (int j = strlen(com) + 1; j < strings->len; j++)
-        STL_Print (fp, "%c", strings->str[j]);
-    STL_Print (fp, "\n");
 
     return 0;
 }

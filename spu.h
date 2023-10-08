@@ -6,8 +6,9 @@
 #include <math.h>
 #include <stdlib.h>
 
+#include "function.h"
 #include "STL_file_open.h"
-#include "Stack_1type/STL_stack.h"
+#include "spu_struct.h"
 
 /**
  * Функция выполнения арифметический действий

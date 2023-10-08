@@ -7,60 +7,67 @@ int SPU (const char* fileName)
     struct File file = { };
     STL_SplitFileIntoLines (&file, fileName);
 
-    struct Stack stk = { };
-    StackCtor (&stk);
+    struct SPU_Struct spu = { };
+    SpuStructCtor (&spu);
 
-    int line = 0;       int a = 0, b = 0;
+    int line = 0;
+    int comand = 0;
+
     while (line < file.nLines)
     {
-        switch ((file.strings[line]).str[0])
+        int a = 0, b = 0;
+
+        sscanf ((file.strings[line]).str, "%d", &comand);
+
+        switch (comand)
         {
-            case '0':  // push
+            case SPU_PUSH:
                 a = atoi(&((file.strings[line]).str[2]));
-                StackPush (&stk, a);
+                StackPush (&(spu.stk), a);
                 break;
-            case '1':  // add
-                StackPop  (&stk, &b);
-                StackPop  (&stk, &a);
-                StackPush (&stk, a + b);
+            case SPU_ADD:
+                StackPop  (&(spu.stk), &b);
+                StackPop  (&(spu.stk), &a);
+                StackPush (&(spu.stk), a + b);
                 break;
-            case '2':  // sub
-                StackPop  (&stk, &b);
-                StackPop  (&stk, &a);
-                StackPush (&stk, a - b);
+            case SPU_SUB:
+                StackPop  (&(spu.stk), &b);
+                StackPop  (&(spu.stk), &a);
+                StackPush (&(spu.stk), a - b);
                 break;
-            case '3':  // mul
-                StackPop  (&stk, &b);
-                StackPop  (&stk, &a);
-                StackPush (&stk, a * b);
+            case SPU_MUL:
+                StackPop  (&(spu.stk), &b);
+                StackPop  (&(spu.stk), &a);
+                StackPush (&(spu.stk), a * b);
                 break;
-            case '4':  // div
-                StackPop  (&stk, &b);
-                StackPop  (&stk, &a);
-                StackPush (&stk, a / b);
+            case SPU_DIV:
+                StackPop  (&(spu.stk), &b);
+                StackPop  (&(spu.stk), &a);
+                StackPush (&(spu.stk), a / b);
                 break;
-            case '5':  // sqrt
-                StackPop  (&stk, &a);
-                StackPush (&stk, sqrt(a));
+            case SPU_SQRT:
+                StackPop  (&(spu.stk), &a);
+                StackPush (&(spu.stk), sqrt(a));
                 break;
-            case '6':  // sin
-                StackPop  (&stk, &a);
-                StackPush (&stk, sin(a));
+            case SPU_SIN:
+                StackPop  (&(spu.stk), &a);
+                StackPush (&(spu.stk), sin(a));
                 break;
-            case '7':  // cos
-                StackPop  (&stk, &a);
-                StackPush (&stk, cos(a));
+            case SPU_COS:
+                StackPop  (&(spu.stk), &a);
+                StackPush (&(spu.stk), cos(a));
                 break;
-            case '8':  // in
+            case SPU_IN:
                 printf ("\nPlease, enter a number: ");
                 scanf ("%d", &a);
-                StackPush (&stk, a);
+                StackPush (&(spu.stk), a);
                 break;
-            case '9':  // OUT
-                StackPop  (&stk, &a);
+            case SPU_OUT:
+                StackPop  (&(spu.stk), &a);
                 printf ("OUT = %d\n", a);
                 break;
-            case 'E':  // HTL
+            case SPU_HTL:
+                SpuStructDtor (&spu);
                 return 0;
         }
 

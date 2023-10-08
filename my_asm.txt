@@ -6,4 +6,4 @@ push 10
 sub 
 div 
 OUT 
-HLT 
+HLT  
