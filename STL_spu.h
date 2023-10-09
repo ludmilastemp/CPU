@@ -6,7 +6,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "function.h"
+#include "STL_function.h"
 #include "STL_file_open.h"
 #include "spu_struct.h"
 

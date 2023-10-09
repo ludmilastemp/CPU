@@ -3,8 +3,7 @@
 
 const int nFunc = 12;
 const int nFuncWithArguments = 2;
-
-const int INITIAL_VALUE_OF_FUNCTIONS = 30;
+const int INITIAL_VALUE_OF_FUNCTIONS = 30; /// любое значение >13
 
 const char* const funcText[nFunc] =
 {

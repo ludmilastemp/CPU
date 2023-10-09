@@ -10,7 +10,8 @@ int ASMToBin (const char* asmFile, const char* binFile)
 
     FILE* fp = fopen (binFile, "wb");
 
-    STL_Print (fp, "STL\n");
+    STL_Print (fp, "STL");
+    STL_Print (fp, " v2\n");
 
     int line = 0;
     while (line < file.nLines)
@@ -50,10 +51,10 @@ static int TranslateToSPU (FILE* fp, String* strings)
             int reg = 0;
             int check = 0;
 
-            sscanf (strings->str + strlen(str), "r%[abcd]x%n", &reg, &check);
+            sscanf (strings->str + strlen(str) + 1, "r%[abcd]x%n", &reg, &check);
 
             if (check == 3) STL_Print (fp, "r%cx", reg);
-            else ; // ERROR
+            else printf ("I DURAK check = %d", check); // ERROR
         }
     }
 

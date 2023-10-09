@@ -1,11 +1,11 @@
 #include "asm.h"
 #include "disasm.h"
-#include "spu.h"
+#include "STL_spu.h"
 
 
 //#include "Running/running.h"
 
-#include "function.h"
+#include "STL_function.h"
 
 int main ()
 {
@@ -38,10 +38,12 @@ int main ()
     ASMToBin ("asm.txt", "bin_txt.txt");
     //printf ("\nASMToBin OK!\n");
 
-    //BinToASM ("bin_txt.txt", "my_asm.txt");
+    SPU ("bin_txt.txt");
+
+    //printf ("\n\nBinToASM run\n");
+    BinToASM ("bin_txt.txt", "my_asm.txt");
     //printf ("BinToASM OK!\n");
 
-    SPU ("bin_txt.txt");
 
     printf ("\n\nEND!");
 }
