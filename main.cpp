@@ -2,48 +2,24 @@
 #include "disasm.h"
 #include "STL_spu.h"
 
-
-//#include "Running/running.h"
-
 #include "STL_function.h"
+
+#define D_ASMToBin(str1, str2)                  \
+    if (ASMToBin ((str1), (str2))) return 0;
+
+#define D_BinToASM(str1, str2)                  \
+    if (BinToASM ((str1), (str2))) return 0;
+
+#define D_SPU(str1)                             \
+    if (SPU ((str1))) return 0;
 
 int main ()
 {
-    /*
-    FILE *fp = fopen("bin_txt.txt", "r");
-    assert(fp);
+    D_ASMToBin ("asm2.txt", "bin_txt.txt");
 
-    FILE *fpBinTxt = fopen("bin_txt.txt", "w");
-    assert(fpBinTxt);
+    D_SPU ("bin_txt.txt");
 
-    if(!TxtInBinTxt(fp, fpBinTxt)) printf("OK!");   *
-
-    FILE *fp = fopen("bin_txt.txt", "r");
-    assert(fp);
-
-    FILE *fpBin = fopen("bin.txt", "wb");
-    assert(fpBin);
-
-    if(!TxtInBin(fp, fpBin)) printf("OK!");  //*
-
-    fclose (fpBin);
-
-    FILE *fpBin2 = fopen("bin.txt", "rb");
-    assert(fpBin);
-
-    BinInConsole(fpBin2);                    *
-
-    return 0;                                 */
-
-    ASMToBin ("asm.txt", "bin_txt.txt");
-    //printf ("\nASMToBin OK!\n");
-
-    SPU ("bin_txt.txt");
-
-    //printf ("\n\nBinToASM run\n");
-    BinToASM ("bin_txt.txt", "my_asm.txt");
-    //printf ("BinToASM OK!\n");
-
+    D_BinToASM ("bin_txt.txt", "my_asm.txt");
 
     printf ("\n\nEND!");
 }

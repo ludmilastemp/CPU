@@ -3,6 +3,18 @@
 static int  TranslateToSPU (FILE* fp, String* strings);
 static void STL_Print      (FILE* fp, const char* const fmt, ...);
 
+#define TransToSPU(fp,str)                                      \
+    do                                                          \
+    {                                                           \
+        int errDef = TranslateToSPU ((fp), (str));              \
+        if (errDef)                                             \
+        {                                                       \
+            STL_SpuStructErrPrint (errDef);                     \
+            printf ("line = %d\n", line);                       \
+            return errDef;                                      \
+        }                                                       \
+    } while (false)
+
 int ASMToBin (const char* asmFile, const char* binFile)
 {
     struct File file = { };
@@ -10,16 +22,17 @@ int ASMToBin (const char* asmFile, const char* binFile)
 
     FILE* fp = fopen (binFile, "wb");
 
-    STL_Print (fp, "STL");
-    STL_Print (fp, " v2\n");
+    STL_Print (fp, "STL v3\n");
 
     int line = 0;
     while (line < file.nLines)
     {
-        TranslateToSPU (fp, &(file.strings[line++]));
+        TransToSPU (fp, &(file.strings[line++]));
     }
 
     fclose (fp);
+
+    return 0;
 }
 
 static int TranslateToSPU (FILE* fp, String* strings)
@@ -34,7 +47,7 @@ static int TranslateToSPU (FILE* fp, String* strings)
         if (strcmp (str, funcText[func]) == 0) break;
     }
 
-    if (func == nFunc) return 0; // ERROR
+    if (func == nFunc) return ERROR_INCORRECT_FUNC;
 
     STL_Print (fp, "%c", func + INITIAL_VALUE_OF_FUNCTIONS);
 
@@ -54,7 +67,7 @@ static int TranslateToSPU (FILE* fp, String* strings)
             sscanf (strings->str + strlen(str) + 1, "r%[abcd]x%n", &reg, &check);
 
             if (check == 3) STL_Print (fp, "r%cx", reg);
-            else printf ("I DURAK check = %d", check); // ERROR
+            else return ERROR_INCORRECT_VALUE;
         }
     }
 
@@ -75,3 +88,5 @@ static void STL_Print (FILE* fp, const char* const fmt, ...)
 
     va_end   (args);
 }
+#undef TransToSPU
+

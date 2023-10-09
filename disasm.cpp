@@ -3,26 +3,49 @@
 int TranslateToASM (FILE* fp, String* strings);
 void STL_Print     (FILE* fp, const char* const fmt, ...);
 
+#define CheckFile(str1, str2)                                   \
+    do                                                          \
+    {                                                           \
+        if (strncmp ((str1), (str2), 6) != 0)                       \
+        {                                                       \
+            STL_SpuStructErrPrint (ERROR_NOT_MY_FILE);          \
+            return ERROR_NOT_MY_FILE;                           \
+        }                                                       \
+    } while (false)
+
+#define TransToASM(fp,str)                                      \
+    do                                                          \
+    {                                                           \
+        int errDef = TranslateToASM ((fp), (str));              \
+        if (errDef)                                             \
+        {                                                       \
+            STL_SpuStructErrPrint (errDef);                     \
+            printf ("line = %d\n", line);                       \
+            return errDef;                                      \
+        }                                                       \
+    } while (false)
+
 int BinToASM (const char* binFile, const char* asmFileNew)
 {
     struct File file = { };
     STL_SplitFileIntoLines (&file, binFile);
 
     FILE* fp = fopen (asmFileNew, "wb");
-    if (!strcmp ((file.strings[0]).str, "STL v2")) return 0; //ERROR
+    CheckFile ((file.strings[0]).str, "STL v3");
 
     int line = 1;
     while (line < file.nLines)
     {
-        TranslateToASM (fp, &(file.strings[line++]));
+        TransToASM (fp, &(file.strings[line++]));
     }
 
     fclose (fp);
+
+    return 0;
 }
 
 int TranslateToASM (FILE* fp, String* strings)
 {
-    int i = 0;
     int comand = 0;
 
     char str[1000] = "0";
@@ -31,11 +54,8 @@ int TranslateToASM (FILE* fp, String* strings)
 
     STL_Print (fp, "%s ", funcText[comand - INITIAL_VALUE_OF_FUNCTIONS]);
 
-//    sscanf (&(strings->str[1]), "%s", str);
-//    STL_Print (fp, "%s\n", str);
-
-    for (int j = 1; j < strings->len; j++)
-        STL_Print (fp, "%c", strings->str[j]);
+    for (int i = 1; i < strings->len; i++)
+        STL_Print (fp, "%c", strings->str[i]);
     STL_Print (fp, "\n");
 
     return 0;

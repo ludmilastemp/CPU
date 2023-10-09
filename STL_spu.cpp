@@ -1,15 +1,37 @@
 #include "STL_spu.h"
 
-static int
-ExecuteFunc (const char* const str, SPU_Struct* spu);
+static int  ExecuteFunc (const char* const str, SPU_Struct* spu);
 static void STL_Print (FILE* fp, const char* const fmt, ...);
+
+#define CheckFile(str1, str2)                                   \
+    do                                                          \
+    {                                                           \
+        if (strncmp ((str1), (str2), 6) != 0)                   \
+        {                                                       \
+            STL_SpuStructErrPrint (ERROR_NOT_MY_FILE);          \
+            return ERROR_NOT_MY_FILE;                           \
+        }                                                       \
+    } while (false)
+                                         // длина кодировки const
+
+#define ExecFunc(fp,spuStr)                                        \
+    do                                                          \
+    {                                                           \
+        spu.err = ExecuteFunc ((fp), (spuStr));                 \
+        if (spu.err)                                            \
+        {                                                       \
+            STL_SpuStructErrPrint (spu.err);                    \
+            printf ("line = %d\n", line);                       \
+            return spu.err;                                     \
+        }                                                       \
+    } while (false)
 
 int SPU (const char* fileName)
 {
     struct File file = { };
     STL_SplitFileIntoLines (&file, fileName);
 
-    if (!strcmp ((file.strings[0]).str, "STL v2")) return 0; //ERROR
+    CheckFile ((file.strings[0]).str, "STL v3");
 
     struct SPU_Struct spu = { };
     SpuStructCtor (&spu);
@@ -18,16 +40,14 @@ int SPU (const char* fileName)
 
     while (line < file.nLines)
     {
-        ExecuteFunc ((file.strings[line]).str, &spu);
-
+        ExecFunc ((file.strings[line]).str, &spu);
         line++;
     }
 
     return 0;
 }
 
-static int
-ExecuteFunc (const char* const str, SPU_Struct* spu)
+static int ExecuteFunc (const char* const str, SPU_Struct* spu)
 {
     int comand = 0;
     int var1 = 0, var2 = 0;
@@ -40,27 +60,31 @@ ExecuteFunc (const char* const str, SPU_Struct* spu)
             if (sscanf (&(str[1]), "%d", &var1))
             {
                 StackPush (&(spu->stk), var1);
+                break;
             }
-            else
+
             {
-                int reg = 0;
-                int check = 0;
 
-                sscanf (&(str[1]), "r%[abcd]x%n", &reg, &check);
+            int reg = 0;
+            int check = 0;
 
-                if (check == 3)
-                {
-                    if (reg == 'a') StackPush (&(spu->stk), spu->rax);
-                    if (reg == 'b') StackPush (&(spu->stk), spu->rbx);
-                    if (reg == 'c') StackPush (&(spu->stk), spu->rcx);
-                    if (reg == 'd') StackPush (&(spu->stk), spu->rdx);
-                }
-                //else ; // ERROR
+            sscanf (&(str[1]), "r%[abcd]x%n", &reg, &check);
+
+            if (check == 3)
+            {
+                if (reg == 'a') StackPush (&(spu->stk), spu->rax);
+                if (reg == 'b') StackPush (&(spu->stk), spu->rbx);
+                if (reg == 'c') StackPush (&(spu->stk), spu->rcx);
+                if (reg == 'd') StackPush (&(spu->stk), spu->rdx);
+            }
+            else return ERROR_INCORRECT_VALUE;
+
             }
 
             break;
         case SPU_POP:
             {
+
             int reg = 0;
             int check = 0;
 
@@ -73,7 +97,8 @@ ExecuteFunc (const char* const str, SPU_Struct* spu)
                 if (reg == 'c') StackPop (&(spu->stk), &(spu->rcx));
                 if (reg == 'd') StackPop (&(spu->stk), &(spu->rdx));
             }
-            //else ; // ERROR
+            else return ERROR_INCORRECT_VALUE;
+
             }
 
             break;
@@ -110,7 +135,7 @@ ExecuteFunc (const char* const str, SPU_Struct* spu)
             StackPush (&(spu->stk), cos(var1));
             break;
         case SPU_IN:
-            printf ("\nPlease, enter var1 number: ");
+            printf ("\nPlease, enter var: ");
             scanf ("%d", &var1);
             StackPush (&(spu->stk), var1);
             break;
@@ -121,7 +146,12 @@ ExecuteFunc (const char* const str, SPU_Struct* spu)
         case SPU_HTL:
             SpuStructDtor (spu);
             return 0;
+        default:
+            printf ("VCE XYN");
+            return ERROR_INCORRECT_FUNC;
     }
+
+    return 0;
 }
 
 static void STL_Print (FILE* fp, const char* const fmt, ...)

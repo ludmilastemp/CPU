@@ -1,17 +1,17 @@
-in 
+in
 pop rax
-in 
+in
 pop rbx
-in 
+in
 pop rcx
 push rbx
 push rbx
-mul 
+mul
 push 4
 push rax
 push rcx
-mul 
-mul 
-sub 
-OUT 
-HLT 
+mul
+mul
+sub
+OUT
+HLT

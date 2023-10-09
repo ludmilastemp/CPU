@@ -1,12 +1,18 @@
 STL v2
-3000
+'
 rax
+'
+rbx
+'
+rcx
+rbx
+rbx
+"
+4
 rax
-2000
+rcx
+"
+"
 !
-3
-10
-!
-#
 (
 )

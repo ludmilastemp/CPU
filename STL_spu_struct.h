@@ -4,7 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <stdarg.h>
 
+#include "STL_function.h"
 #include "Stack_1type/STL_stack.h"
 
 struct SPU_Struct
@@ -14,6 +16,7 @@ struct SPU_Struct
     int rbx;
     int rcx;
     int rdx;
+    int err;
 };
 
 #define SpuStructCtor(stk)                                          \
@@ -26,7 +29,7 @@ struct SPU_Struct
     STL_SpuStructVerificator ((stk))
 
 #define SpuStructDump(stk)                                          \
-    STL_SpuStructDump ((stk));
+    STL_SpuStructDump ((stk))
 
 int
 STL_SpuStructCtor (SPU_Struct* stk);
@@ -39,5 +42,8 @@ STL_SpuStructVerificator (SPU_Struct* stk);
 
 void
 STL_SpuStructDump (const SPU_Struct* stk);
+
+char*
+STL_SpuStructErrPrint (int err);
 
 #endif /* STL_stack_ */

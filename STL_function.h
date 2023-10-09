@@ -37,4 +37,11 @@ enum Func
     SPU_HTL
 };
 
+enum SPU_ERROR
+{
+    ERROR_INCORRECT_FUNC  = 1 << 0,
+    ERROR_INCORRECT_VALUE = 1 << 1,
+    ERROR_NOT_MY_FILE     = 1 << 2
+};
+
 #endif /* STL_function_ */

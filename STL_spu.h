@@ -8,7 +8,7 @@
 
 #include "STL_function.h"
 #include "STL_file_open.h"
-#include "spu_struct.h"
+#include "STL_spu_struct.h"
 
 /**
  * Функция выполнения арифметический действий
