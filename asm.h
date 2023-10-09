@@ -13,4 +13,6 @@
  */
 int ASMToBin (const char* asmFile, const char* byteFile);
 
+int CheckAntiOverflow (const char* binFile);
+
 #endif /* STL_asm_ */

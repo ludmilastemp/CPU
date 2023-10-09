@@ -1,18 +1,12 @@
-STL v2
-'
-rax
-'
-rbx
-'
-rcx
-rbx
-rbx
-"
-4
-rax
-rcx
-"
-"
-!
-(
-)
+STL v3
+!3000
+"rax
+!rax
+!2000
+$
+!3
+!10
+$
+&
++
+,

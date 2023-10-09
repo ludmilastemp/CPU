@@ -90,7 +90,7 @@ static int ExecuteFunc (const char* const str, SPU_Struct* spu)
 
             int reg = 0;
             int check = 0;
-
+                                                                    
             sscanf (&(str[1]), "r%[abcd]x%n", &reg, &check);
 
             if (check == 3)

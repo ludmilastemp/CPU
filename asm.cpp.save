@@ -47,8 +47,8 @@ static int TranslateToSPU (FILE* fp, String* strings)
     // find opcode
     // read word
     // parse arg
-
-    char str[1000] = "0";      // const
+    
+    char str[1000] = "0";      // const 
 
     sscanf (strings->str, "%s", str); // buffer overflow
 
@@ -62,7 +62,7 @@ static int TranslateToSPU (FILE* fp, String* strings)
 
     STL_Print (fp, "%c", func + INITIAL_VALUE_OF_FUNCTIONS);
 
-    if (func < nFuncWithArguments) /// cvt[ b uht[
+    if (func < nFuncWithArguments) /// cvt[ b uht[ 
     {
         int var = 0;
 
@@ -72,7 +72,7 @@ static int TranslateToSPU (FILE* fp, String* strings)
             // fread();  fwrite()
             // char* ptr;
             // *(int*)ptr = 23;
-//            STL_Print (fp, "<%d> ",  var & 0xF0000000);   >><<
+//            STL_Print (fp, "<%d> ",  var & 0xF0000000);   >><< 
 //            STL_Print (fp, "<%d> ",  var & 0x0F000000);
 //            STL_Print (fp, "<%d> ",  var & 0x00F00000);
 //            STL_Print (fp, "<%d> ",  var & 0x000F0000);
