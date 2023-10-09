@@ -8,7 +8,7 @@ int BinToASM (const char* binFile, const char* asmFileNew)
     struct File file = { };
     STL_SplitFileIntoLines (&file, binFile);
 
-    FILE* fp = fopen (asmFileNew, "w");
+    FILE* fp = fopen (asmFileNew, "wb");
 
     int line = 0;
     while (line < file.nLines)

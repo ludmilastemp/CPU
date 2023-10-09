@@ -10,7 +10,7 @@ char* STL_Fread (struct File* file)
 
     struct stat buff = { 0 };
 
-    file->fp = fopen (file->name, "r");
+    file->fp = fopen (file->name, "rb");
     assert (file->fp);
 
     fstat (fileno (file->fp), &buff);

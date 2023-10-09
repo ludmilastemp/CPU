@@ -8,7 +8,9 @@ int ASMToBin (const char* asmFile, const char* binFile)
     struct File file = { };
     STL_SplitFileIntoLines (&file, asmFile);
 
-    FILE* fp = fopen (binFile, "w");
+    FILE* fp = fopen (binFile, "wb");
+
+    STL_Print (fp, "STL\n");
 
     int line = 0;
     while (line < file.nLines)
@@ -21,28 +23,41 @@ int ASMToBin (const char* asmFile, const char* binFile)
 
 static int TranslateToSPU (FILE* fp, String* strings)
 {
-    char com[1000] = "0";
+    char str[1000] = "0";
 
-    sscanf (strings->str, "%s", com);
+    sscanf (strings->str, "%s", str);
 
-    for (int i = 0; i < nFunc; i++)
+    int func = 0;
+    for (; func < nFunc; func++)
     {
-        if (strcmp (com, funcText[i]) == 0)
+        if (strcmp (str, funcText[func]) == 0) break;
+    }
+
+    if (func == nFunc) return 0; // ERROR
+
+    STL_Print (fp, "%c", func + INITIAL_VALUE_OF_FUNCTIONS);
+
+    if (func < nFuncWithArguments)
+    {
+        int variable = 0;
+
+        if (sscanf (strings->str + strlen(str), "%d", &variable))
         {
-            STL_Print (fp, "%d ", i);
+            STL_Print (fp, "%d", variable);
+        }
+        else
+        {
+            int reg = 0;
+            int check = 0;
 
-            if (i < nFuncWithArguments)
-            {
-                sscanf (strings->str + strlen(com), "%s", com);
+            sscanf (strings->str + strlen(str), "r%[abcd]x%n", &reg, &check);
 
-                STL_Print (fp, "%s", com);
-            }
-
-            STL_Print (fp, "\n");
-
-            break;
+            if (check == 3) STL_Print (fp, "r%cx", reg);
+            else ; // ERROR
         }
     }
+
+    STL_Print (fp, "\n");
 
     return 0;
 }
