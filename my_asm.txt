@@ -1,11 +1,11 @@
-push 3000
-pop rax
-push rax
-push 2000
-sub 
-push 3
-push 10
-sub 
-div 
+PUSH 75
+POP rax
+PUSH rax
+PUSH 20
+SUB 
+PUSH 100
+PUSH 89
+SUB 
+DIV 
 OUT 
 HLT 

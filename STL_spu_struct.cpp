@@ -11,10 +11,11 @@ STL_SpuStructCtor (SPU_Struct* spu)
 
     StackCtor (&(spu->stk));
 
-    spu->rax = 0;
-    spu->rbx = 0;
-    spu->rcx = 0;
-    spu->rdx = 0;
+    spu->registers[0] = 0;
+    spu->registers[1] = 0;
+    spu->registers[2] = 0;
+    spu->registers[3] = 0;
+
     spu->err = 0;
 
     return 0;
@@ -27,10 +28,11 @@ STL_SpuStructDtor (SPU_Struct* spu)
 
     StackDtor (&(spu->stk));
 
-    spu->rax = 0;
-    spu->rbx = 0;
-    spu->rcx = 0;
-    spu->rdx = 0;
+    spu->registers[0] = 0;
+    spu->registers[1] = 0;
+    spu->registers[2] = 0;
+    spu->registers[3] = 0;
+
     spu->err = 0;
 
     spu = nullptr;
@@ -53,10 +55,10 @@ STL_SpuStructDump (const SPU_Struct* spu)
 {
     StackDump (&(spu->stk));
 
-    STL_Print ("rax = %d\n", spu->rax);
-    STL_Print ("rbx = %d\n", spu->rbx);
-    STL_Print ("rcx = %d\n", spu->rcx);
-    STL_Print ("rdx = %d\n", spu->rdx);
+    STL_Print ("rax = %d\n", spu->registers[0]);
+    STL_Print ("rbx = %d\n", spu->registers[1]);
+    STL_Print ("rcx = %d\n", spu->registers[2]);
+    STL_Print ("rdx = %d\n", spu->registers[3]);
 }
 
 char*
@@ -75,7 +77,7 @@ STL_SpuStructErrPrint (int err)
 
     SpuStructPrintErrCheck (ERROR_INCORRECT_FUNC);
     SpuStructPrintErrCheck (ERROR_INCORRECT_VALUE);
-    SpuStructPrintErrCheck (ERROR_NOT_MY_FILE);
+    SpuStructPrintErrCheck (ERROR_FILE_FORMAT);
 
 #undef StackPrintErrCheck
 
@@ -87,19 +89,14 @@ STL_SpuStructErrPrint (int err)
 static void STL_Print (const char* const fmt, ...)
 {
     assert   (fmt);
-    //FILE* fp = fopen (logFile, "a");
 
     va_list   args = {};
 
     va_start (args, fmt);
 
     vfprintf (stderr, fmt, args);
-    //vfprintf (fp, fmt, args);
 
     va_end   (args);
-
-    //fclose   (fp);
-    //fp = nullptr;
 }
 
 

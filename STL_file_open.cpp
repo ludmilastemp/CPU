@@ -57,6 +57,34 @@ String* STL_SplitFileIntoLines (File* file, const char* name)
     return file->strings;
 }
 
+int STL_Fclose (struct File* file)
+{
+    free (file->buf);
+    free (file->strings);
+
+    file->name    = 0;
+    file->fp      = nullptr;
+    file->buf    = nullptr;
+    file->size    = 0;
+    file->nLines  = 0;
+    file->strings = nullptr;
+
+    return 0;
+}
+
+void STL_PrintFile (FILE* fp, const char* const fmt, ...)
+{
+    assert   (fmt);
+
+    va_list   args = {};
+
+    va_start (args, fmt);
+
+    vfprintf (fp, fmt, args);
+
+    va_end   (args);
+}
+
 static int CountNumberOfLines (char* buf, size_t size)
 {
     size_t numberOfLines = 0;
@@ -102,17 +130,3 @@ static void SplitIntoLines (File* file)
                                       - (file->strings + line - 1)->str - 1;
 }
 
-int STL_Fclose (struct File* file)
-{
-    free (file->buf);
-    free (file->strings);
-
-    file->name    = 0;
-    file->fp      = nullptr;
-    file->buf    = nullptr;
-    file->size    = 0;
-    file->nLines  = 0;
-    file->strings = nullptr;
-
-    return 0;
-}

@@ -2,9 +2,9 @@
 #define STL_spu_
 
 #include <stdio.h>
-#include <stdarg.h>
 #include <math.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include "STL_function.h"
 #include "STL_file_open.h"

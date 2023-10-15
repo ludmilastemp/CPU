@@ -6,11 +6,10 @@
 
 #include "STL_function.h"
 #include "STL_spu_struct.h"
-#include "STL_file_open.h"
 
 /**
  * Функция декодирования файла из байтового кода в формат asm
  */
-int BinToASM (const char* byteFile, const char* asmFileNew);
+int DisAsm (const char* byteFile, const char* asmFileNew);
 
 #endif /* STL_disasm_ */

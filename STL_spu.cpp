@@ -1,172 +1,110 @@
 #include "STL_spu.h"
-// cpu -- central processing unit
-// spu -- software processing unit
-// fpu -- floating point unit
 
-static int  ExecuteFunc (const char* const str, SPU_Struct* spu);
-static void STL_Print (FILE* fp, const char* const fmt, ...);
+static int Execute (const char* const str);
 
-#define CheckFile(str1, str2)                                   \
-    do                                                          \
-    {                                                           \
-        if (strncmp ((str1), (str2), 6) != 0)                   \
-        {                                                       \
-            STL_SpuStructErrPrint (ERROR_NOT_MY_FILE);          \
-            return ERROR_NOT_MY_FILE;                           \
-        }                                                       \
-    } while (false)
-                                         // длина кодировки const
+static int ExecuteCommand (const char* const str, int* index, SPU_Struct* spu);
 
-#define ExecFunc(fp,spuStr)                                        \
-    do                                                          \
-    {                                                           \
-        spu.err = ExecuteFunc ((fp), (spuStr));                 \
-        if (spu.err)                                            \
-        {                                                       \
-            STL_SpuStructErrPrint (spu.err);                    \
-            printf ("line = %d\n", line);                       \
-            return spu.err;                                     \
-        }                                                       \
-    } while (false)
+static int ParseArg (const char* const str, int* arg, int type);
+
+static int CheckFileSignature (const char* const str, const char* const signature);
 
 int SPU (const char* fileName)
 {
-    struct File file = { };
-    STL_SplitFileIntoLines (&file, fileName);
+    char str[FILE_MAX_SIZE_IN_BYTES] = "";
+    int index = 0;
 
-    CheckFile ((file.strings[0]).str, "STL v3");
+    FILE* fp = fopen (fileName, "rb");
+    fread(&str, sizeof(char), FILE_MAX_SIZE_IN_BYTES, fp);
 
-    struct SPU_Struct spu = { };
-    SpuStructCtor (&spu);
+    if (CheckFileSignature (str, "STL v4")) return ERROR_FILE_FORMAT;
+    index += SIGNATURE_LENGTH;
 
-    int line = 1;
-
-    while (line < file.nLines)
-    {
-        ExecFunc ((file.strings[line]).str, &spu); //
-        line++;
-    }
+    Execute (str + index);
 
     return 0;
 }
 
-static int ExecuteFunc (const char* const str, SPU_Struct* spu)
+static int Execute (const char* const str)
 {
-    int comand = 0;
+    struct SPU_Struct spu = { };
+    SpuStructCtor (&spu);
+
+    int index = 0;
+    int nCommand = *(int*)(str + index);
+    index += 4;
+
+    int line = 0;
+    while (line < nCommand)
+    {
+        spu.err = ExecuteCommand (str, &index, &spu);
+
+        if (spu.err)
+        {
+            STL_SpuStructErrPrint (spu.err);
+            printf ("line = %d\n", line + 1);
+            return spu.err;
+        }
+        line++;
+    }
+
+    SpuStructDtor (&spu);
+}
+
+#define DO_PUSH(var) StackPush (&(spu->stk), (var));
+#define DO_POP(var)  StackPop  (&(spu->stk), (var));
+
+#define DEF_CMD(name,opCode,arg,action)         \
+    case opCode:                                \
+        (action);                               \
+        break;
+
+static int ExecuteCommand (const char* const str, int* index, SPU_Struct* spu)
+{
+    int command = 0;
     int var1 = 0, var2 = 0;
 
-    sscanf (str, "%c", &comand);
+    command = str[(*index)++];
 
-    switch (comand)
+    switch (command & 0x3F) /// 00 11 11 11
     {
-        case SPU_PUSH:
-            if (sscanf (&(str[1]), "%d", &var1))
-            {
-                StackPush (&(spu->stk), var1);
-                break;
-            }
+        #include "STL_commands.h"
 
-            {
-
-            int reg = 0;
-            int check = 0;
-
-            sscanf (&(str[1]), "r%[abcd]x%n", &reg, &check);
-
-            if (check == 3)
-            {
-                if (reg == 'a') StackPush (&(spu->stk), spu->rax);
-                if (reg == 'b') StackPush (&(spu->stk), spu->rbx);
-                if (reg == 'c') StackPush (&(spu->stk), spu->rcx);
-                if (reg == 'd') StackPush (&(spu->stk), spu->rdx);
-            }
-            else return ERROR_INCORRECT_VALUE;
-
-            }
-
-            break;
-        case SPU_POP:
-            {
-
-            int reg = 0;
-            int check = 0;
-
-            sscanf (&(str[1]), "r%[abcd]x%n", &reg, &check);
-
-            if (check == 3)
-            {                //enum названия регистра
-                // StackPop (&(spu->stk), &(spu->registers[reg])
-                if (reg == 'a') StackPop (&(spu->stk), &(spu->rax));
-                if (reg == 'b') StackPop (&(spu->stk), &(spu->rbx));
-                if (reg == 'c') StackPop (&(spu->stk), &(spu->rcx));
-                if (reg == 'd') StackPop (&(spu->stk), &(spu->rdx));
-            }
-            else return ERROR_INCORRECT_VALUE;
-
-            }
-
-            break;
-        case SPU_ADD:
-            StackPop  (&(spu->stk), &var2);
-            StackPop  (&(spu->stk), &var1);
-            StackPush (&(spu->stk), var1 + var2);
-            break;
-        case SPU_SUB:
-            StackPop  (&(spu->stk), &var2);
-            StackPop  (&(spu->stk), &var1);
-            StackPush (&(spu->stk), var1 - var2);
-            break;
-        case SPU_MUL:
-            StackPop  (&(spu->stk), &var2);
-            StackPop  (&(spu->stk), &var1);
-            StackPush (&(spu->stk), var1 * var2);
-            break;
-        case SPU_DIV:
-            StackPop  (&(spu->stk), &var2);
-            StackPop  (&(spu->stk), &var1);
-            if (var2 == 0) return ERROR_INCORRECT_VALUE;
-            StackPush (&(spu->stk), var1 / var2);
-            break;
-        case SPU_SQRT:
-            StackPop  (&(spu->stk), &var1);
-            StackPush (&(spu->stk), sqrt(var1));
-            break;
-        case SPU_SIN:
-            StackPop  (&(spu->stk), &var1);
-            StackPush (&(spu->stk), sin(var1));
-            break;
-        case SPU_COS:
-            StackPop  (&(spu->stk), &var1);
-            StackPush (&(spu->stk), cos(var1));
-            break;
-        case SPU_IN:
-            printf ("\nPlease, enter var: ");
-            scanf ("%d", &var1);
-            StackPush (&(spu->stk), var1);
-            break;
-        case SPU_OUT:
-            StackPop  (&(spu->stk), &var1);
-            printf ("OUT = %d\n", var1);
-            break;
-        case SPU_HTL:
-            SpuStructDtor (spu);
-            return 0;
         default:
+            printf ("I default\n");
             return ERROR_INCORRECT_FUNC;
     }
 
     return 0;
 }
+#undef DEF_CMD
 
-static void STL_Print (FILE* fp, const char* const fmt, ...)
+static int ParseArg (const char* const str, int* arg, int type)
 {
-    assert   (fmt);
+    if (type & T_ARG_INT)
+    {
+        *arg = *(int*)(str);
+    }
+    else if (type & T_ARG_REG)
+    {
+        *arg = *str;
 
-    va_list   args = {};
+        if (0 <= *arg && *arg <= 4) ;
+        else return ERROR_INCORRECT_VALUE;
+    }
+    else
+    {
+        return ERROR_INCORRECT_FUNC;
+    }
 
-    va_start (args, fmt);
+    return 0;
+}
 
-    vfprintf (fp, fmt, args);
-
-    va_end   (args);
+static int CheckFileSignature (const char* const str, const char* const signature)
+{
+    if (strncmp ((str), (signature), SIGNATURE_LENGTH) != 0)
+    {
+        STL_SpuStructErrPrint (ERROR_FILE_FORMAT);
+        return ERROR_FILE_FORMAT;
+    }
+    return 0;
 }

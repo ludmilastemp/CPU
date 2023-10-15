@@ -11,8 +11,6 @@
 /**
  * Функция кодирования файла из формата asm в байтовый код
  */
-int ASMToBin (const char* asmFile, const char* byteFile);
-
-int CheckAntiOverflow (const char* binFile);
+int Compile (const char* const asmFile, const char* const byteFile);
 
 #endif /* STL_asm_ */

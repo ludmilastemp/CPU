@@ -1,75 +1,151 @@
 #include "disasm.h"
 
-int TranslateToASM (FILE* fp, String* strings);
-void STL_Print     (FILE* fp, const char* const fmt, ...);
+static char str[FILE_MAX_SIZE_IN_BYTES] = "";
+static int index = 0;
 
-#define CheckFile(str1, str2)                                   \
-    do                                                          \
-    {                                                           \
-        if (strncmp ((str1), (str2), 6) != 0)                       \
-        {                                                       \
-            STL_SpuStructErrPrint (ERROR_NOT_MY_FILE);          \
-            return ERROR_NOT_MY_FILE;                           \
-        }                                                       \
-    } while (false)
+static int DisAsmFile (const char* const strBin);
 
-#define TransToASM(fp,str)                                      \
-    do                                                          \
-    {                                                           \
-        int errDef = TranslateToASM ((fp), (str));              \
-        if (errDef)                                             \
-        {                                                       \
-            STL_SpuStructErrPrint (errDef);                     \
-            printf ("line = %d\n", line);                       \
-            return errDef;                                      \
-        }                                                       \
-    } while (false)
+static int DisAsmOperation (const char* const strBin, int* indexBin);
 
-int BinToASM (const char* binFile, const char* asmFileNew)
+static int PrintArg (const char* const strBin, int* type);
+
+static int CheckFileSignature (const char* const str, const char* const signature);
+
+static int WriteInFile (const char* const asmFileNew);
+
+int DisAsm (const char* binFile, const char* asmFileNew)
 {
-    struct File file = { };
-    STL_SplitFileIntoLines (&file, binFile);
+    char strBin[FILE_MAX_SIZE_IN_BYTES] = "";
+    int indexBin = 0;
 
-    FILE* fp = fopen (asmFileNew, "wb");
-    CheckFile ((file.strings[0]).str, "STL v3");
+    FILE* fp = fopen (binFile, "rb");
+    fread(&strBin, sizeof(char), FILE_MAX_SIZE_IN_BYTES, fp);
 
-    int line = 1;
-    while (line < file.nLines)
-    {
-        TransToASM (fp, &(file.strings[line++]));
-    }
+    if (CheckFileSignature (strBin, "STL v4")) return ERROR_FILE_FORMAT;
+    indexBin += SIGNATURE_LENGTH;
+
+    DisAsmFile (strBin + indexBin);
+
+    WriteInFile (asmFileNew);
 
     fclose (fp);
 
     return 0;
 }
 
-int TranslateToASM (FILE* fp, String* strings)
+static int DisAsmFile (const char* const strBin)
 {
-    int comand = 0;
+    int indexBin = 0;
 
-    char str[1000] = "0";
+    int nCommand = *(int*)(strBin + indexBin);
+    indexBin += 4;
 
-    sscanf (strings->str, "%c", &comand);
+    int line = 0;
+    int error = 0;
+    while (line < nCommand)
+    {
+        error = DisAsmOperation (strBin, &indexBin);
+        if (error)
+        {
+            STL_SpuStructErrPrint (error);
+            printf ("line = %d\n", line + 1);
+            return error;
+        }
+        line++;
+        str[index++] = '\n';
+    }
+}
 
-    STL_Print (fp, "%s ", funcText[comand - INITIAL_VALUE_OF_FUNCTIONS]);
+#define DEF_CMD(name,opCode,nArg,...)                                   \
+    case opCode:                                                        \
+        {                                                               \
+        int len = strlen (#name);                                       \
+        strncpy (str + index, #name, len);                              \
+        index += len;                                                   \
+                                                                        \
+        str[index++] = ' ';                                             \
+                                                                        \
+        if (nArg)                                                       \
+        {                                                               \
+            int type = command & (T_ARG_INT | T_ARG_REG);               \
+                                                                        \
+            int error = PrintArg (strBin + *indexBin, &type);           \
+            if (error) return error;                                    \
+                                                                        \
+            if      (type == T_ARG_INT) *indexBin += 4;                 \
+            else if (type == T_ARG_REG) *indexBin += 1;                 \
+            else return ERROR_INCORRECT_VALUE;                          \
+        }                                                               \
+        }                                                               \
+        break;
 
-    for (int i = 1; i < strings->len; i++)
-        STL_Print (fp, "%c", strings->str[i]);
-    STL_Print (fp, "\n");
+int DisAsmOperation (const char* const strBin, int* indexBin)
+{
+    int command = 0;
+    command = strBin[(*indexBin)++];
+
+    switch (command & 0x3F)
+    {
+        #include "STL_commands.h"
+
+        default:
+            printf ("I default\n");
+            return ERROR_INCORRECT_FUNC;
+    }
+
+    return 0;
+}
+#undef DEF_CMD
+
+static int PrintArg (const char* const strBin, int* type)
+{
+    int arg = 0;
+    char argc[10] = "";
+    if (*type & T_ARG_INT)
+    {
+        arg = *(int*)(strBin);
+        sprintf (argc, "%d", arg);
+        strcpy (str + index, argc);
+        index += strlen (argc);
+
+        *type = T_ARG_INT;
+    }
+    else if (*type & T_ARG_REG)
+    {
+        arg = *strBin;
+        sprintf (argc, "r%cx", arg + 'a');
+        strcpy (str + index, argc);
+        index += strlen (argc);
+
+        if (0 <= arg && arg <= 4) ;
+        else return ERROR_INCORRECT_VALUE;
+
+        *type = T_ARG_REG;
+    }
+    else
+    {
+        return ERROR_INCORRECT_FUNC;
+    }
 
     return 0;
 }
 
-void STL_Print (FILE* fp, const char* const fmt, ...)
+static int CheckFileSignature (const char* const str1, const char* const signature)
 {
-    assert   (fmt);
-
-    va_list   args = {};
-
-    va_start (args, fmt);
-
-    vfprintf (fp, fmt, args);
-
-    va_end   (args);
+    if (strncmp ((str1), (signature), SIGNATURE_LENGTH) != 0)
+    {
+        STL_SpuStructErrPrint (ERROR_FILE_FORMAT);
+        return ERROR_FILE_FORMAT;
+    }
+    return 0;
 }
+
+static int WriteInFile (const char* const asmFileNew)
+{
+    FILE* file = fopen (asmFileNew, "wb");
+
+    fwrite (str, sizeof(char), index, file);
+
+    fclose (file);
+}
+

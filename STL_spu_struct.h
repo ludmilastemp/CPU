@@ -12,10 +12,7 @@
 struct SPU_Struct
 {
     struct Stack stk;
-    int rax;
-    int rbx;
-    int rcx;
-    int rdx;
+    int registers[4];
     int err;
 };
 
