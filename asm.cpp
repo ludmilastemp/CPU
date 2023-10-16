@@ -20,7 +20,7 @@ int Compile (const char* const asmFile, const char* const binFile)
     struct File file = { };
     STL_SplitFileIntoLines (&file, asmFile);
 
-    WriteSignature ("STL v4\n");
+    WriteSignature ("STL v5\n");
     WriteNumberOperation (file.nLines);
 
     CompileFile (&file);
@@ -43,7 +43,7 @@ static int CompileFile (File* file)
         if (error)
         {
             printf ("line = %d\n", line);
-            STL_SpuStructErrPrint (error);
+            STL_SpuErrPrint (error);
             return error;
         }
     }
@@ -51,7 +51,7 @@ static int CompileFile (File* file)
     return 0;
 }
 
-#define DEF_CMD(name, num, nArg, ...)                                   \
+#define DEF_CMD(name, opCode, nArg, ...)                                \
     if (stricmp (command, #name) == 0)                                  \
     {                                                                   \
         if (nArg)                                                       \
@@ -61,16 +61,16 @@ static int CompileFile (File* file)
                                                                         \
             ParseArg (string->str + strlen(command) + 1, &var, &type);  \
                                                                         \
-            str[index++] = num | type;                                  \
+            str[index++] = opCode | type;                               \
             *(int*)(str + index) = var;                                 \
                                                                         \
-            if      (type == T_ARG_INT) index += 4;                     \
-            else if (type == T_ARG_REG) index += 1;                     \
+            if      (type == T_ARG_INT) index += sizeof (int);          \
+            else if (type == T_ARG_REG) index += sizeof (char);         \
             else return ERROR_INCORRECT_VALUE;                          \
         }                                                               \
         else                                                            \
         {                                                               \
-            str[index++] = num;                                         \
+            str[index++] = opCode;                                      \
         }                                                               \
                                                                         \
     } else

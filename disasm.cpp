@@ -11,6 +11,8 @@ static int PrintArg (const char* const strBin, int* type);
 
 static int CheckFileSignature (const char* const str, const char* const signature);
 
+static int ReadBinFile (char* strBin, const char* const binFile, int* indexBin);
+
 static int WriteInFile (const char* const asmFileNew);
 
 int DisAsm (const char* binFile, const char* asmFileNew)
@@ -18,17 +20,11 @@ int DisAsm (const char* binFile, const char* asmFileNew)
     char strBin[FILE_MAX_SIZE_IN_BYTES] = "";
     int indexBin = 0;
 
-    FILE* fp = fopen (binFile, "rb");
-    fread(&strBin, sizeof(char), FILE_MAX_SIZE_IN_BYTES, fp);
-
-    if (CheckFileSignature (strBin, "STL v4")) return ERROR_FILE_FORMAT;
-    indexBin += SIGNATURE_LENGTH;
+    ReadBinFile (strBin, binFile, &indexBin);
 
     DisAsmFile (strBin + indexBin);
 
     WriteInFile (asmFileNew);
-
-    fclose (fp);
 
     return 0;
 }
@@ -45,20 +41,24 @@ static int DisAsmFile (const char* const strBin)
     while (line < nCommand)
     {
         error = DisAsmOperation (strBin, &indexBin);
+
         if (error)
         {
-            STL_SpuStructErrPrint (error);
+            STL_SpuErrPrint (error);
             printf ("line = %d\n", line + 1);
             return error;
         }
+
         line++;
+
         str[index++] = '\n';
     }
 }
 
-#define DEF_CMD(name,opCode,nArg,...)                                   \
+#define DEF_CMD(name, opCode, nArg,...)                                 \
     case opCode:                                                        \
         {                                                               \
+                                                                        \
         int len = strlen (#name);                                       \
         strncpy (str + index, #name, len);                              \
         index += len;                                                   \
@@ -69,13 +69,13 @@ static int DisAsmFile (const char* const strBin)
         {                                                               \
             int type = command & (T_ARG_INT | T_ARG_REG);               \
                                                                         \
-            int error = PrintArg (strBin + *indexBin, &type);           \
-            if (error) return error;                                    \
+            PrintArg (strBin + *indexBin, &type);                       \
                                                                         \
-            if      (type == T_ARG_INT) *indexBin += 4;                 \
-            else if (type == T_ARG_REG) *indexBin += 1;                 \
+            if      (type == T_ARG_INT) *indexBin += sizeof (int);      \
+            else if (type == T_ARG_REG) *indexBin += sizeof (char);     \
             else return ERROR_INCORRECT_VALUE;                          \
         }                                                               \
+                                                                        \
         }                                                               \
         break;
 
@@ -124,7 +124,7 @@ static int PrintArg (const char* const strBin, int* type)
     }
     else
     {
-        return ERROR_INCORRECT_FUNC;
+        *type = 0;
     }
 
     return 0;
@@ -134,18 +134,32 @@ static int CheckFileSignature (const char* const str1, const char* const signatu
 {
     if (strncmp ((str1), (signature), SIGNATURE_LENGTH) != 0)
     {
-        STL_SpuStructErrPrint (ERROR_FILE_FORMAT);
+        STL_SpuErrPrint (ERROR_FILE_FORMAT);
         return ERROR_FILE_FORMAT;
     }
     return 0;
 }
 
+static int ReadBinFile (char* strBin, const char* const binFile, int* indexBin)
+{
+    FILE* fp = fopen (binFile, "rb");
+
+    fread (strBin, sizeof(char), FILE_MAX_SIZE_IN_BYTES, fp);
+
+    if (CheckFileSignature (strBin, "STL v5")) return ERROR_FILE_FORMAT;
+    *indexBin += SIGNATURE_LENGTH;
+
+    fclose (fp);
+
+    return 0;
+}
+
 static int WriteInFile (const char* const asmFileNew)
 {
-    FILE* file = fopen (asmFileNew, "wb");
+    FILE* fp = fopen (asmFileNew, "wb");
 
-    fwrite (str, sizeof(char), index, file);
+    fwrite (str, sizeof(char), index, fp);
 
-    fclose (file);
+    fclose (fp);
 }
 

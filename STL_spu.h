@@ -6,8 +6,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#include "STL_function.h"
-#include "STL_file_open.h"
+#include "STL_const.h"
 #include "STL_spu_struct.h"
 
 /**

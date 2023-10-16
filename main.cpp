@@ -2,8 +2,6 @@
 #include "disasm.h"
 #include "STL_spu.h"
 
-#include "STL_function.h"
-
 // assembler - транслятор
 // assembly - язык
 
@@ -11,18 +9,17 @@
 // spu -- software processing unit
 // fpu -- floating point unit
 
-#define D(F)  \
+#define D(F)                    \
     if (F) return EXIT_FAILURE;
 
-// underflow not antioverflow :(
 int main ()
 {
 
-D(  Compile ("asm.txt", "bin_txt.txt") )
+D(  Compile ("asm.txt", "bin.bin") )
 
-D(  SPU ("bin_txt.txt") )
+D(  SPU ("bin.bin") )
 
-D(  DisAsm ("bin_txt.txt", "my_asm.txt") )
+D(  DisAsm ("bin.bin", "my_asm.txt") )
 
     printf ("\n\nEND!");
 

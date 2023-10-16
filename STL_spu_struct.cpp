@@ -62,24 +62,24 @@ STL_SpuStructDump (const SPU_Struct* spu)
 }
 
 char*
-STL_SpuStructErrPrint (int err)
+STL_SpuErrPrint (int err)
 {
     char str[100] = " ";
 
     sprintf (errStr, "\n\n");
 
-#define SpuStructPrintErrCheck(x)            \
+#define SpuPrintErrCheck(x)                  \
     if (err % (2 * x) >= x)                  \
     {                                        \
         sprintf (str, "ERROR! " #x "\n");    \
         strcat (errStr, str);                \
     }
 
-    SpuStructPrintErrCheck (ERROR_INCORRECT_FUNC);
-    SpuStructPrintErrCheck (ERROR_INCORRECT_VALUE);
-    SpuStructPrintErrCheck (ERROR_FILE_FORMAT);
+    SpuPrintErrCheck (ERROR_INCORRECT_FUNC);
+    SpuPrintErrCheck (ERROR_INCORRECT_VALUE);
+    SpuPrintErrCheck (ERROR_FILE_FORMAT);
 
-#undef StackPrintErrCheck
+#undef SpuPrintErrCheck
 
     STL_Print ("%s", errStr);
 

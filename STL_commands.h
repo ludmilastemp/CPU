@@ -5,11 +5,11 @@ DEF_CMD(PUSH, 1, 1,
 
     if (command & T_ARG_INT)
     {
-        *index += 4;
+        *index += sizeof (int);
     }
     else if (command & T_ARG_REG)
     {
-        *index += 1;
+        *index += sizeof (char);
         var1 = spu->registers[var1];
     }
     else
@@ -27,7 +27,7 @@ DEF_CMD(POP, 2, 1,
 
     if (command & T_ARG_REG)
     {
-        *index += 1;
+        *index += sizeof (char);
     }
     else
     {
@@ -100,3 +100,4 @@ DEF_CMD(HLT, 0, 0,
     {
     return 0;
     })
+
