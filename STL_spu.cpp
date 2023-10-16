@@ -13,6 +13,7 @@ static int ReadFile (char* str, const char* const fileName, int* index);
 int SPU (const char* fileName)
 {
     char str[FILE_MAX_SIZE_IN_BYTES] = "";
+    // getFileSIze calloc!!!!!
     int index = 0;
 
     ReadFile (str, fileName, &index);
@@ -63,12 +64,15 @@ static int ExecuteCommand (const char* const str, int* index, SPU_Struct* spu)
 
     command = str[(*index)++];
 
+    // из command -> Write int
+    //                     reg
+
     switch (command & 0x3F) /// 00 11 11 11
     {
         #include "STL_commands.h"
 
         default:
-            printf ("I default\n");
+            printf ("I'm default\n");
             return ERROR_INCORRECT_FUNC;
     }
 
@@ -79,6 +83,7 @@ static int ExecuteCommand (const char* const str, int* index, SPU_Struct* spu)
 
 #undef DEF_CMD
 
+// decodeArg   instruction
 static int ParseArg (const char* const str, int* arg, int type)
 {
     if (type & T_ARG_INT)

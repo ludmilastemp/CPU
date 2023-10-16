@@ -10,6 +10,13 @@
 
 const int SIGNATURE_LENGTH = 6;
 
+struct STL_Header
+{
+   //char magic[5] = "SLT_v";
+   //char version = 5;
+   //...
+};
+
 struct SPU_Struct
 {
     struct Stack stk;
@@ -31,13 +38,13 @@ enum RegisterName
     REG_RAX,
     REG_RBX,
     REG_RCX,
-    REG_RDX,
+    REG_RDX,    //
 };
 
 enum ArgType
 {
-    T_ARG_INT = 0x40,
-    T_ARG_REG = 0x80
+    T_ARG_INT = 0x40,  /// 1 << 6
+    T_ARG_REG = 0x80,  /// 1 << 7
 };
 
 enum SPU_Error
@@ -45,7 +52,7 @@ enum SPU_Error
     ERROR_INCORRECT_FUNC        = 1 << 0,
     ERROR_INCORRECT_VALUE       = 1 << 1,
     ERROR_FILE_FORMAT           = 1 << 2,
-    ERROR_COMMAND_NAME_TOO_LONG = 1 << 3
+    ERROR_COMMAND_NAME_TOO_LONG = 1 << 3,
 };
 
 #define SpuStructCtor(stk)                                          \

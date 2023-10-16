@@ -1,11 +1,13 @@
-DEF_CMD(PUSH, 1, 1,
+/* DEF_CMD( name, opCode, nArgs, actoin) */
+
+DEF_CMD(PUSH, 0x01, 1,
     {
     int error = ParseArg (str + *index, &var1, command & (T_ARG_INT | T_ARG_REG));
     if (error) return error;
 
     if (command & T_ARG_INT)
     {
-        *index += sizeof (int);
+        *index += sizeof (int); // ip -- instruction pointer pc -- program counter
     }
     else if (command & T_ARG_REG)
     {
@@ -20,7 +22,7 @@ DEF_CMD(PUSH, 1, 1,
     DO_PUSH (var1);
     })
 
-DEF_CMD(POP, 2, 1,
+DEF_CMD(POP, 0x02, 1,
     {
     int error = ParseArg (str + *index, &var1, command & (T_ARG_INT | T_ARG_REG));
     if (error) return error;

@@ -101,6 +101,8 @@ static int ParseArg (const char* const string, int* arg, int* type = 0)
     {
         int check = 0;
 
+        // meow tx
+        // 8 ,aqn - long and switch
         sscanf (string, "r%[abcd]x%n", arg, &check);
 
         if (check == 3)
@@ -121,6 +123,8 @@ static int WriteSignature (const char* const signature)
 {
     strncpy (str, signature, SIGNATURE_LENGTH);
     index += SIGNATURE_LENGTH;
+
+    // *(STL_Header*)ptr = *header;
 }
 
 static int WriteNumberOperation (const int count)
@@ -132,7 +136,7 @@ static int WriteNumberOperation (const int count)
 static int WriteInBinFile (const char* const binFile)
 {
     FILE* fp = fopen (binFile, "wb");
-
+    ///////////////////////////////////////////////////////////////
     fwrite (str, sizeof(char), index, fp);
 
     fclose (fp);

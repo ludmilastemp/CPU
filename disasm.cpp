@@ -16,7 +16,7 @@ static int ReadBinFile (char* strBin, const char* const binFile, int* indexBin);
 static int WriteInFile (const char* const asmFileNew);
 
 int DisAsm (const char* binFile, const char* asmFileNew)
-{
+{                               // typedef
     char strBin[FILE_MAX_SIZE_IN_BYTES] = "";
     int indexBin = 0;
 
@@ -34,12 +34,13 @@ static int DisAsmFile (const char* const strBin)
     int indexBin = 0;
 
     int nCommand = *(int*)(strBin + indexBin);
-    indexBin += 4;
+    indexBin += sizeof (int);
 
     int line = 0;
     int error = 0;
     while (line < nCommand)
     {
+    //             a
         error = DisAsmOperation (strBin, &indexBin);
 
         if (error)
@@ -55,7 +56,7 @@ static int DisAsmFile (const char* const strBin)
     }
 }
 
-#define DEF_CMD(name, opCode, nArg,...)                                 \
+#define DEF_CMD(name, opCode, nArg, ...)                                 \
     case opCode:                                                        \
         {                                                               \
                                                                         \
@@ -130,19 +131,27 @@ static int PrintArg (const char* const strBin, int* type)
     return 0;
 }
 
+// binfmt - yfpdfybt afqkf dct xnj c [tlthjv
+// copypasta
+
+// cpu exception (invalid memory, invalid instruction)
 static int CheckFileSignature (const char* const str1, const char* const signature)
 {
     if (strncmp ((str1), (signature), SIGNATURE_LENGTH) != 0)
     {
-        STL_SpuErrPrint (ERROR_FILE_FORMAT);
+        STL_SpuErrPrint (ERROR_FILE_FORMAT); //????
         return ERROR_FILE_FORMAT;
     }
+
     return 0;
 }
 
 static int ReadBinFile (char* strBin, const char* const binFile, int* indexBin)
 {
+    // assert!!!
+
     FILE* fp = fopen (binFile, "rb");
+    // naked fopen
 
     fread (strBin, sizeof(char), FILE_MAX_SIZE_IN_BYTES, fp);
 
@@ -157,6 +166,7 @@ static int ReadBinFile (char* strBin, const char* const binFile, int* indexBin)
 static int WriteInFile (const char* const asmFileNew)
 {
     FILE* fp = fopen (asmFileNew, "wb");
+    // naked fopen
 
     fwrite (str, sizeof(char), index, fp);
 
