@@ -1,0 +1,12 @@
+        push 79
+        push 43
+
+        jb :meow
+        push 777
+        out
+        hlt
+:meow
+
+        push 555
+        out
+        hlt

@@ -1,41 +1,47 @@
 #include "STL_spu.h"
 
-static int Execute (const char* const str);
+static int Execute (const char* const str, int ip);
 
-static int ExecuteCommand (const char* const str, int* index, SPU_Struct* spu);
+static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu);
 
-static int ParseArg (const char* const str, int* arg, int type);
+static int DecodeArg (const char* const str, int* ip, int command, SPU_Type* arg, int* reg);
 
-static int CheckFileSignature (const char* const str, const char* const signature);
-
-static int ReadFile (char* str, const char* const fileName, int* index);
+static int ReadFile (char** str, const char* const fileName, int* ip);
 
 int SPU (const char* fileName)
 {
-    char str[FILE_MAX_SIZE_IN_BYTES] = "";
-    // getFileSIze calloc!!!!!
-    int index = 0;
+    assert (fileName);
 
-    ReadFile (str, fileName, &index);
+    char* str = 0;
+    int ip = 0;
 
-    Execute (str + index);
+    ReadFile (&str, fileName, &ip);
+
+    Execute (str, ip);
+
+    free (str);
 
     return 0;
 }
 
-static int Execute (const char* const str)
+
+static int Execute (const char* const str, int ip)
 {
+    assert (str);
+
     struct SPU_Struct spu = { };
     SpuStructCtor (&spu);
 
-    int index = 0;
-    int nCommand = *(int*)(str + index);
-    index += 4;
-
     int line = 0;
-    while (line < nCommand)
+
+    int meow = 0;
+    while (meow < 60)
     {
-        spu.err = ExecuteCommand (str, &index, &spu);
+        meow++;
+
+        spu.err = ExecuteCommand (str, &ip, &spu);
+
+        if (spu.err == -1) break;
 
         if (spu.err)
         {
@@ -47,29 +53,47 @@ static int Execute (const char* const str)
     }
 
     SpuStructDtor (&spu);
+
+    return 0;
 }
 
 #define DO_PUSH(var) StackPush (&(spu->stk), (var));
 #define DO_POP(var)  StackPop  (&(spu->stk), (var));
 
-#define DEF_CMD(name, opCode, nArg, action)                             \
+#define DEF_CMD(name, opCode, arg, action)                              \
     case opCode:                                                        \
         (action);                                                       \
         break;
 
-static int ExecuteCommand (const char* const str, int* index, SPU_Struct* spu)
+#define MAKE_COND_JMP(name, opCode, sign)                               \
+    case opCode:                                                        \
+        DO_POP (&var2);                                                 \
+        DO_POP (&var1);                                                 \
+        if (var1 sign var2) *ip = arg;                                  \
+        break;
+
+static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu)
 {
+    assert (str);
+    assert (ip);
+    assert (spu);
+
     int command = 0;
-    int var1 = 0, var2 = 0;
+    SPU_Type var1 = 0, var2 = 0;
 
-    command = str[(*index)++];
+    command = str[(*ip)++];
 
-    // из command -> Write int
-    //                     reg
+    SPU_Type arg = 0;
+    int reg = 0;
+
+    DecodeArg (str, ip, command, &arg, &reg);
+    arg += spu->registers[reg];
 
     switch (command & 0x3F) /// 00 11 11 11
     {
         #include "STL_commands.h"
+
+        #include "STL_jmp.h"
 
         default:
             printf ("I'm default\n");
@@ -83,48 +107,45 @@ static int ExecuteCommand (const char* const str, int* index, SPU_Struct* spu)
 
 #undef DEF_CMD
 
-// decodeArg   instruction
-static int ParseArg (const char* const str, int* arg, int type)
-{
-    if (type & T_ARG_INT)
-    {
-        *arg = *(int*)(str);
-    }
-    else if (type & T_ARG_REG)
-    {
-        *arg = *str;
+#undef MAKE_COND_JMP
 
-        if (0 <= *arg && *arg <= 4) ;
+static int DecodeArg (const char* const str, int* ip, int command, SPU_Type* arg, int* reg)
+{
+    assert (str);
+    assert (ip);
+    assert (arg);
+    assert (reg);
+
+    if (command & T_ARG_INT)
+    {
+        *arg = *(const SPU_Type*)(str + *ip);
+        *ip += sizeof (SPU_Type);
+    }
+    if (command & T_ARG_REG)
+    {
+        *reg = *(str + *ip);
+
+        if (0 <= *reg && *reg <= nRegisters) ;
         else return ERROR_INCORRECT_VALUE;
-    }
-    else
-    {
-        return ERROR_INCORRECT_FUNC;
+
+        *ip += sizeof (char);
     }
 
     return 0;
 }
 
-static int CheckFileSignature (const char* const str, const char* const signature)
+static int ReadFile (char** str, const char* const fileName, int* ip)
 {
-    if (strncmp ((str), (signature), SIGNATURE_LENGTH) != 0)
-    {
-        STL_SpuErrPrint (ERROR_FILE_FORMAT);
-        return ERROR_FILE_FORMAT;
-    }
-    return 0;
-}
+    assert (str);
+    assert (fileName);
+    assert (ip);
 
-static int ReadFile (char* str, const char* const fileName, int* index)
-{
-    FILE* fp = fopen (fileName, "rb");
+    struct File file = { .name = fileName };
+    STL_Fread (&file);
 
-    fread (str, sizeof(char), FILE_MAX_SIZE_IN_BYTES, fp);
+    *str = file.buf;
 
-    if (CheckFileSignature (str, "STL v5")) return ERROR_FILE_FORMAT;
-    *index += SIGNATURE_LENGTH;
-
-    fclose (fp);
+    if (CheckFileSignature (*str, ip, 6)) return ERROR_FILE_FORMAT;
 
     return 0;
 }

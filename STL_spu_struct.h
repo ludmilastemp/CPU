@@ -8,23 +8,18 @@
 
 #include "Stack_1type/STL_stack.h"
 
-const int SIGNATURE_LENGTH = 6;
+typedef int SPU_Type;   /// не забудь поменять тип в стеке
 
-struct STL_Header
-{
-   //char magic[5] = "SLT_v";
-   //char version = 5;
-   //...
-};
+const int nRegisters = 8;
 
 struct SPU_Struct
 {
     struct Stack stk;
-    int registers[4];
+    SPU_Type registers[nRegisters];
     int err;
 };
 
-#define DEF_CMD(name,opCode, ...)   \
+#define DEF_CMD(name,opCode, ...)                                       \
     CMD_##name = opCode,
 
 enum OpCode
@@ -32,14 +27,6 @@ enum OpCode
     #include "STL_commands.h"
 };
 #undef DEF_CMD
-
-enum RegisterName
-{
-    REG_RAX,
-    REG_RBX,
-    REG_RCX,
-    REG_RDX,    //
-};
 
 enum ArgType
 {
@@ -53,6 +40,7 @@ enum SPU_Error
     ERROR_INCORRECT_VALUE       = 1 << 1,
     ERROR_FILE_FORMAT           = 1 << 2,
     ERROR_COMMAND_NAME_TOO_LONG = 1 << 3,
+    ERROR_NOT_MEMORY            = 1 << 4,
 };
 
 #define SpuStructCtor(stk)                                          \

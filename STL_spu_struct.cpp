@@ -11,10 +11,10 @@ STL_SpuStructCtor (SPU_Struct* spu)
 
     StackCtor (&(spu->stk));
 
-    spu->registers[0] = 0;
-    spu->registers[1] = 0;
-    spu->registers[2] = 0;
-    spu->registers[3] = 0;
+    for (int i = 0; i < nRegisters; ++i)
+    {
+        spu->registers[i] = 0;
+    }
 
     spu->err = 0;
 
@@ -28,10 +28,10 @@ STL_SpuStructDtor (SPU_Struct* spu)
 
     StackDtor (&(spu->stk));
 
-    spu->registers[0] = 0;
-    spu->registers[1] = 0;
-    spu->registers[2] = 0;
-    spu->registers[3] = 0;
+    for (int i = 0; i < nRegisters; ++i)
+    {
+        spu->registers[i] = 0;
+    }
 
     spu->err = 0;
 
@@ -55,10 +55,10 @@ STL_SpuStructDump (const SPU_Struct* spu)
 {
     StackDump (&(spu->stk));
 
-    STL_Print ("rax = %d\n", spu->registers[0]);
-    STL_Print ("rbx = %d\n", spu->registers[1]);
-    STL_Print ("rcx = %d\n", spu->registers[2]);
-    STL_Print ("rdx = %d\n", spu->registers[3]);
+    for (int i = 0; i < nRegisters; ++i)
+    {
+        STL_Print ("r%d = %d\n", i, spu->registers[i]);
+    }
 }
 
 char*

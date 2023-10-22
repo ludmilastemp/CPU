@@ -13,16 +13,26 @@
 // fpu -- floating point unit
 
 #define D(F)                    \
-    if (F) return EXIT_FAILURE;
+    if (F)                      \
+    {                           \
+        printf ("ERROR");       \
+        return EXIT_FAILURE;    \
+    }
 
 int main ()
 {
+                                            // 1    5
+                                            // 2    in in in
+                                            // 3    1 4 9 .. 64
+                                            // 4    79
+                                            // 5    777
 // beee 3 main funcsssssssssssssssssss
-D(  Compile ("asm.txt", "bin.bin") )
+D(  Compile ("asm3.txt", "bin.bin") )
+    printf ("Compile OK!\n");
 
 D(  SPU ("bin.bin") )
 
-D(  DisAsm ("bin.bin", "my_asm.txt") )
+//D(  DisAsm ("bin.bin", "my_asm.txt") )
 
     printf ("\n\nEND!");
 

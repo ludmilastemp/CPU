@@ -1,4 +1,4 @@
-#include "disasm.h"
+#include "disasm.h"           /*
 
 static char str[FILE_MAX_SIZE_IN_BYTES] = "";
 static int index = 0;
@@ -173,3 +173,4 @@ static int WriteInFile (const char* const asmFileNew)
     fclose (fp);
 }
 
+                        */

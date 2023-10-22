@@ -1,66 +1,39 @@
-/* DEF_CMD( name, opCode, nArgs, actoin) */
+/* DEF_CMD (name, opCode, nArgs, action) */
 
-DEF_CMD(PUSH, 0x01, 1,
-    {
-    int error = ParseArg (str + *index, &var1, command & (T_ARG_INT | T_ARG_REG));
-    if (error) return error;
+/// номер команды не должен превышать 0x20 == 64
 
-    if (command & T_ARG_INT)
+DEF_CMD (PUSH, 0x01, 1,
     {
-        *index += sizeof (int); // ip -- instruction pointer pc -- program counter
-    }
-    else if (command & T_ARG_REG)
-    {
-        *index += sizeof (char);
-        var1 = spu->registers[var1];
-    }
-    else
-    {
-        return ERROR_INCORRECT_FUNC;
-    }
-
-    DO_PUSH (var1);
+    DO_PUSH (arg);
     })
 
-DEF_CMD(POP, 0x02, 1,
+DEF_CMD (POP, 0x02, 1,
     {
-    int error = ParseArg (str + *index, &var1, command & (T_ARG_INT | T_ARG_REG));
-    if (error) return error;
-
-    if (command & T_ARG_REG)
-    {
-        *index += sizeof (char);
-    }
-    else
-    {
-        return ERROR_INCORRECT_FUNC;
-    }
-
-    DO_POP (&(spu->registers[var1]));
+    DO_POP (&(spu->registers[reg]));
     })
 
-DEF_CMD(ADD, 3, 0,
+DEF_CMD (ADD, 0x03, 0,
     {
     DO_POP (&var2);
     DO_POP (&var1);
     DO_PUSH (var1 + var2);
     })
 
-DEF_CMD(SUB, 4, 0,
+DEF_CMD (SUB, 0x04, 0,
     {
     DO_POP (&var2);
     DO_POP (&var1);
     DO_PUSH (var1 - var2);
     })
 
-DEF_CMD(MUL, 5, 0,
+DEF_CMD (MUL, 0x05, 0,
     {
     DO_POP (&var2);
     DO_POP (&var1);
     DO_PUSH (var1 * var2);
     })
 
-DEF_CMD(DIV, 6, 0,
+DEF_CMD (DIV, 0x06, 0,
     {
     DO_POP (&var2);
     DO_POP (&var1);
@@ -68,38 +41,44 @@ DEF_CMD(DIV, 6, 0,
     DO_PUSH (var1 / var2);
     })
 
-DEF_CMD(SQRT, 7, 0,
+DEF_CMD (SQRT, 0x07, 0,
     {
     DO_POP (&var1);
-    DO_PUSH (sqrt(var1));
+    DO_PUSH ((int)sqrt(var1));
     })
 
-DEF_CMD(SIN, 8, 0,
+DEF_CMD (SIN, 0x08, 0,
     {
     DO_POP (&var1);
-    DO_PUSH (sin(var1));
+    DO_PUSH ((int)sin(var1));
     })
 
-DEF_CMD(COS, 9, 0, {
+DEF_CMD (COS, 0x09, 0, {
     DO_POP (&var1);
-    DO_PUSH (cos(var1));
+    DO_PUSH ((int)cos(var1));
     })
 
-DEF_CMD(IN,  10, 0,
+DEF_CMD (IN, 0x0A, 0,
     {
     printf ("\nPlease, enter var: ");
     scanf ("%d", &var1);
     DO_PUSH (var1);
     })
 
-DEF_CMD(OUT, 11, 0,
+DEF_CMD (OUT, 0x0B, 0,
     {
     DO_POP (&var1);
     printf ("OUT = %d\n", var1);
     })
 
-DEF_CMD(HLT, 0, 0,
+DEF_CMD (JMP, 0x0C, 1,
     {
-    return 0;
+    *ip = arg;
     })
+
+DEF_CMD (HLT, 0, 0,
+    {
+    return -1;
+    })
+
 

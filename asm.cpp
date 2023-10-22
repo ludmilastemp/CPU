@@ -1,27 +1,49 @@
 #include "asm.h"
 
-static char str[FILE_MAX_SIZE_IN_BYTES] = "";
-static int  index = 0;
+static char* str = 0;
+static int  ip = 0;
+
+struct label
+{
+    const char* name;
+    int lenName;
+    int byte;
+};
+
+static label labels[10] = { };           // динамика
+static int nLabel = 0;
+
+struct fixup
+{
+    int byte;
+    int labelIndex;
+};
+
+static fixup fixups[10] = { };
+static int nFixup = 0;
 
 static int CompileFile (File* file);
 
-static int CompileOperation (String* string);
+static int CompileOperation (const char* string);
 
-static int ParseArg (const char* const string, int* arg, int* type);
-
-static int WriteSignature (const char* const signature);
-
-static int WriteNumberOperation (const int count);
+static int ParseArg (const char* string, unsigned char opCode);
 
 static int WriteInBinFile (const char* const binFile);
 
+static int StrlenUpToSpace (const char* const string);
+
 int Compile (const char* const asmFile, const char* const binFile)
 {
+    assert (asmFile);
+    assert (binFile);
+
     struct File file = { };
     STL_SplitFileIntoLines (&file, asmFile);
 
-    WriteSignature ("STL v5\n");
-    WriteNumberOperation (file.nLines);
+    str = (char*) calloc (file.size, sizeof (char));
+    assert (str);
+
+    WriteSignature (6, str, &ip);
 
     CompileFile (&file);
 
@@ -29,16 +51,30 @@ int Compile (const char* const asmFile, const char* const binFile)
 
     STL_Fclose (&file);
 
+//    for (int i = 0; i < 10; ++i)
+//    {
+//        printf ("labels[%d] \n", i);
+//        printf ("\t name = <%s> \n", labels[i].name);
+//        printf ("\t byte = <%d> \n", labels[i].byte);
+//    }
+
     return 0;
 }
 
 static int CompileFile (File* file)
 {
+    assert (file);
+
     int line = 0;
     int error = 0;
+
     while (line < file->nLines)
     {
-        error = CompileOperation (&(file->strings[line++]));
+        while ((file->strings[line]).len == 1) line++;
+
+//        printf ("line = %d\n", line);
+
+        error = CompileOperation ((file->strings[line++]).str);
 
         if (error)
         {
@@ -48,41 +84,62 @@ static int CompileFile (File* file)
         }
     }
 
+    for (int i = 0; i < nFixup; i++)
+    {
+        *(int*)(str + fixups[i].byte) = labels[fixups[i].labelIndex].byte;
+    }
+
     return 0;
 }
 
-#define DEF_CMD(name, opCode, nArg, ...)                                \
-    if (stricmp (command, #name) == 0)                                  \
+#define DEF_CMD(name, opCode, arg, ...)                                 \
+    if (strnicmp (string, #name, strlen(#name)) == 0)                   \
     {                                                                   \
-        if (nArg)                                                       \
+        if (arg)                                                        \
         {                                                               \
-            int var = 0;                                                \
-            int type = 0;                                               \
-                                                                        \
-            ParseArg (string->str + strlen(command) + 1, &var, &type);  \
-                                                                        \
-            str[index++] = opCode | type;                               \
-            *(int*)(str + index) = var;                                 \
-                                                                        \
-            if      (type == T_ARG_INT) index += sizeof (int);          \
-            else if (type == T_ARG_REG) index += sizeof (char);         \
-            else return ERROR_INCORRECT_VALUE;                          \
+            ParseArg (string + strlen(#name) + 1, opCode);              \
         }                                                               \
         else                                                            \
         {                                                               \
-            str[index++] = opCode;                                      \
+            str[ip++] = opCode;                                         \
         }                                                               \
                                                                         \
     } else
 
-static int CompileOperation (String* string)
-{
-    char command[OPERATION_NAME_MAX_LENGTH] = "";
+#define MAKE_COND_JMP(name, opCode, ...)                                \
+    if (strnicmp (string, #name, strlen(#name)) == 0)                   \
+    {                                                                   \
+        ParseArg (string + strlen(#name) + 1, opCode);                  \
+    } else
 
-    int len = sscanf (string->str, "%s", command);
-    if (len > OPERATION_NAME_MAX_LENGTH - 1) return ERROR_COMMAND_NAME_TOO_LONG;
+static int CompileOperation (const char* string)
+{
+    assert (string);
+
+    while (string[0] == ' ') string++;      /// пропуск \t
+
+    if    (string[0] == ':')
+    {
+        int i = 0;
+        for (; i < nLabel - 1; ++i)
+        {
+            if (strncmp (string + 1, labels[i].name, labels[i].lenName) == 0)
+            {
+                break;
+            }
+        }
+
+        labels[i].name = string + 1;
+        labels[i].lenName = StrlenUpToSpace (string + 1);
+        labels[i].byte = ip;
+
+        if (i == nLabel) nLabel++;
+    }
+    else /* if */
 
     #include "STL_commands.h"
+
+    #include "STL_jmp.h"
 
     /* else */ return ERROR_INCORRECT_FUNC;
 
@@ -90,58 +147,113 @@ static int CompileOperation (String* string)
 }
 #undef DEF_CMD
 
-static int ParseArg (const char* const string, int* arg, int* type = 0)
+#undef MAKE_COND_JMP
+
+#define DEF_REG(name, opCode)                                           \
+    if (strnicmp (string, #name, strlen(#name)) == 0)                   \
+    {                                                                   \
+        arg = opCode;                                                   \
+    } else
+
+static int ParseArg (const char* string, unsigned char opCode)
 {
-    if (sscanf (string, "%d", arg))
-    {
-        *type = T_ARG_INT;
-        *(int*)(str + index) = *arg;
-    }
-    else
-    {
-        int check = 0;
+    assert (string);
 
-        // meow tx
-        // 8 ,aqn - long and switch
-        sscanf (string, "r%[abcd]x%n", arg, &check);
+    int arg = 0;
 
-        if (check == 3)
+    if (string[0] == ':')
+    {
+        str[ip++] = opCode | T_ARG_INT;
+
+        int i = 0;
+        for (; i < nLabel; ++i)
         {
-            *type = T_ARG_REG;
-                 if (*arg == 'a') *arg = REG_RAX;
-            else if (*arg == 'b') *arg = REG_RBX;
-            else if (*arg == 'c') *arg = REG_RCX;
-            else if (*arg == 'd') *arg = REG_RDX;
+            if (strncmp (string + 1, labels[i].name, labels[i].lenName) == 0)
+            {
+                if (labels[i].byte != -1)
+                {
+                    *(int*)(str + ip) = labels[i].byte;
+                }
+
+                ip += sizeof (int);
+
+                return 0;
+            }
         }
-        else return ERROR_INCORRECT_VALUE;
+
+        labels[i].name = string + 1;
+        labels[i].lenName = StrlenUpToSpace (string + 1);
+
+        fixups[nFixup].byte = ip;
+        fixups[nFixup++].labelIndex = nLabel;
+
+        nLabel++;
+
+        ip += sizeof (int);
+
+        return 0;
     }
+
+    if (sscanf (string, "%d", &arg))
+    {
+        opCode |= T_ARG_INT;
+
+        while ((string[0] >= '0' && string[0] <= '9') ||
+                string[0] == ' ')
+        {
+            string++;
+        }
+
+        if (string[0] == '\r' || string[0] == '\n')
+        {
+            str[ip++] = opCode | T_ARG_INT;
+            *(SPU_Type*)(str + ip) = arg;
+
+            ip += sizeof (SPU_Type);
+
+            return 0;
+        }
+    }
+
+    str[ip++] = opCode | T_ARG_REG;
+
+    if (opCode & T_ARG_INT)
+    {
+        *(SPU_Type*)(str + ip) = arg;
+        ip += sizeof (SPU_Type);
+    }
+
+    #include "STL_registers.h"
+
+    /* else */ return ERROR_INCORRECT_VALUE;
+
+    str[ip++] = (char)arg;
 
     return 0;
 }
 
-static int WriteSignature (const char* const signature)
-{
-    strncpy (str, signature, SIGNATURE_LENGTH);
-    index += SIGNATURE_LENGTH;
-
-    // *(STL_Header*)ptr = *header;
-}
-
-static int WriteNumberOperation (const int count)
-{
-    *(int*)(str + index) = count;
-    index += 4;
-}
+#undef DEF_REG
 
 static int WriteInBinFile (const char* const binFile)
 {
+    assert (binFile);
+
     FILE* fp = fopen (binFile, "wb");
-    ///////////////////////////////////////////////////////////////
-    fwrite (str, sizeof(char), index, fp);
+    assert (fp);
+
+    fwrite (str, sizeof(char), ip, fp);
 
     fclose (fp);
 
     return 0;
+}
+
+static int StrlenUpToSpace (const char* const string)
+{
+    int i = 0;
+    while (string[i] != ' ' && string[i] != '\n' && string[i] != '\0') i++;
+
+    return i - 1;
 }
 
 #undef TransToSPU

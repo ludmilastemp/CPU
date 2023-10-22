@@ -5,6 +5,7 @@
 #include <stdarg.h>
 
 #include "STL_const.h"
+#include "STL_header.h"
 #include "STL_spu_struct.h"
 #include "STL_file_open.h"
 

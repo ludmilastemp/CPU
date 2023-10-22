@@ -1,0 +1,14 @@
+        push 79
+        pop rax
+        jmp :meow
+
+        push rax
+        push rax
+        push 1
+        add
+        pop rax
+:meow
+
+        push rax
+        out
+        hlt

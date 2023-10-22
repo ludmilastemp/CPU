@@ -1,6 +1,6 @@
 push 75
-pop rax
-push rax
+pop meow
+push meow
 push 20
 sub
 push 100

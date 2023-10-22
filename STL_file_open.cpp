@@ -64,7 +64,7 @@ int STL_Fclose (struct File* file)
 
     file->name    = 0;
     file->fp      = nullptr;
-    file->buf    = nullptr;
+    file->buf     = nullptr;
     file->size    = 0;
     file->nLines  = 0;
     file->strings = nullptr;
@@ -103,7 +103,7 @@ static void SplitIntoLines (File* file)
 {
     assert (file);
 
-    size_t line = 0;
+    int    line = 0;
     size_t pos = 0;
 
     (file->strings + line)->str = (file->buf + pos);
