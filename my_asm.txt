@@ -1,13 +1,12 @@
-PUSH 1
-POP rax
-HLT 
-HLT 
-HLT 
-HLT 
-HLT 
-HLT 
-HLT 
-HLT 
-HLT 
-HLT 
-HLT 
+  6 PUSH 79 
+ 11 POP reg_1
+ 13 JMP 30 
+ 18 PUSH reg_1
+ 20 PUSH reg_1
+ 22 PUSH 1 
+ 27 ADD 
+ 28 POP reg_1
+ 30 PUSH reg_1
+ 32 OUT 
+ 33 HLT 
+ 34 

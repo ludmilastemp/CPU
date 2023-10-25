@@ -5,11 +5,13 @@
 #include <stdarg.h>
 
 #include "STL_const.h"
+#include "STL_header.h"
 #include "STL_spu_struct.h"
+#include "STL_file_open.h"
 
 /**
  * Функция декодирования файла из байтового кода в формат asm
  */
-int DisAsm (const char* byteFile, const char* asmFileNew);
+int Disasm (const char* byteFile, const char* asmFileNew);
 
 #endif /* STL_disasm_ */

@@ -1,47 +1,45 @@
-#include "disasm.h"           /*
+#include "disasm.h"
 
-static char str[FILE_MAX_SIZE_IN_BYTES] = "";
+static char* str = 0;
 static int index = 0;
 
-static int DisAsmFile (const char* const strBin);
+static int DisasmFile (const char* const strBin, int indexBin);
 
-static int DisAsmOperation (const char* const strBin, int* indexBin);
+static int DisasmOperation (const char* const strBin, int* indexBin);
 
-static int PrintArg (const char* const strBin, int* type);
+static int PrintArg (const char* const strBin, int* indexBin, int command);
 
 static int CheckFileSignature (const char* const str, const char* const signature);
 
-static int ReadBinFile (char* strBin, const char* const binFile, int* indexBin);
+static int ReadBinFile (char** strBin, const char* const binFile, int* indexBin);
 
 static int WriteInFile (const char* const asmFileNew);
 
-int DisAsm (const char* binFile, const char* asmFileNew)
+int Disasm (const char* binFile, const char* asmFileNew)
 {                               // typedef
-    char strBin[FILE_MAX_SIZE_IN_BYTES] = "";
+    char* strBin = 0;
     int indexBin = 0;
 
-    ReadBinFile (strBin, binFile, &indexBin);
+    ReadBinFile (&strBin, binFile, &indexBin);
 
-    DisAsmFile (strBin + indexBin);
+    DisasmFile (strBin, indexBin);
 
     WriteInFile (asmFileNew);
+
+    free (strBin);
 
     return 0;
 }
 
-static int DisAsmFile (const char* const strBin)
+static int DisasmFile (const char* const strBin, int indexBin)
 {
-    int indexBin = 0;
-
-    int nCommand = *(int*)(strBin + indexBin);
-    indexBin += sizeof (int);
-
     int line = 0;
     int error = 0;
-    while (line < nCommand)
+    while (true)
     {
-    //             a
-        error = DisAsmOperation (strBin, &indexBin);
+        error = DisasmOperation (strBin, &indexBin);
+
+        if (error == -1) break;
 
         if (error)
         {
@@ -56,7 +54,7 @@ static int DisAsmFile (const char* const strBin)
     }
 }
 
-#define DEF_CMD(name, opCode, nArg, ...)                                 \
+#define DEF_CMD(name, opCode, ...)                                      \
     case opCode:                                                        \
         {                                                               \
                                                                         \
@@ -66,111 +64,119 @@ static int DisAsmFile (const char* const strBin)
                                                                         \
         str[index++] = ' ';                                             \
                                                                         \
-        if (nArg)                                                       \
-        {                                                               \
-            int type = command & (T_ARG_INT | T_ARG_REG);               \
-                                                                        \
-            PrintArg (strBin + *indexBin, &type);                       \
-                                                                        \
-            if      (type == T_ARG_INT) *indexBin += sizeof (int);      \
-            else if (type == T_ARG_REG) *indexBin += sizeof (char);     \
-            else return ERROR_INCORRECT_VALUE;                          \
         }                                                               \
+        break;
+
+#define MAKE_COND_JMP(name, opCode, ...)                                \
+    case opCode:                                                        \
+        {                                                               \
+                                                                        \
+        int len = strlen (#name);                                       \
+        strncpy (str + index, #name, len);                              \
+        index += len;                                                   \
+                                                                        \
+        str[index++] = ' ';                                             \
                                                                         \
         }                                                               \
         break;
 
-int DisAsmOperation (const char* const strBin, int* indexBin)
+int DisasmOperation (const char* const strBin, int* indexBin)
 {
-    int command = 0;
-    command = strBin[(*indexBin)++];
+    char strTemp[10] = "";
+
+    sprintf (strTemp, "%3d", *indexBin);
+    strcpy (str + index, strTemp);
+
+    index += strlen (strTemp);
+    str[index++] = ' ';
+
+    int command = strBin[(*indexBin)++];
+
+    if (command == -1) return -1;
 
     switch (command & 0x3F)
     {
         #include "STL_commands.h"
 
+        #include "STL_jmp.h"
+
         default:
             printf ("I default\n");
+            printf ("str = <%s>\n", str + index);
             return ERROR_INCORRECT_FUNC;
     }
+
+    PrintArg (strBin, indexBin, command);
 
     return 0;
 }
 #undef DEF_CMD
 
-static int PrintArg (const char* const strBin, int* type)
+static int PrintArg (const char* const strBin, int* indexBin, int command)
 {
     int arg = 0;
     char argc[10] = "";
-    if (*type & T_ARG_INT)
+
+    if (command & T_ARG_INT)
     {
-        arg = *(int*)(strBin);
+        arg = *(int*)(strBin + *indexBin);
+
         sprintf (argc, "%d", arg);
         strcpy (str + index, argc);
-        index += strlen (argc);
 
-        *type = T_ARG_INT;
+        index += strlen (argc);
+        *indexBin += sizeof (int);
+
+        str[index++] = ' ';
     }
-    else if (*type & T_ARG_REG)
-    {
-        arg = *strBin;
-        sprintf (argc, "r%cx", arg + 'a');
-        strcpy (str + index, argc);
-        index += strlen (argc);
 
-        if (0 <= arg && arg <= 4) ;
+    if (command & T_ARG_REG)
+    {
+        arg = *(strBin + *indexBin);
+
+        strcpy (str + index, "reg_");
+        index += sizeof ("reg_") - 1;
+
+        str[index++] = arg + '0';
+
+        if (0 <= arg && arg <= 8) ;
         else return ERROR_INCORRECT_VALUE;
 
-        *type = T_ARG_REG;
-    }
-    else
-    {
-        *type = 0;
+        *indexBin += sizeof (char);
     }
 
     return 0;
 }
 
-// binfmt - yfpdfybt afqkf dct xnj c [tlthjv
-// copypasta
-
-// cpu exception (invalid memory, invalid instruction)
-static int CheckFileSignature (const char* const str1, const char* const signature)
+static int ReadBinFile (char** strBin, const char* const binFile, int* indexBin)
 {
-    if (strncmp ((str1), (signature), SIGNATURE_LENGTH) != 0)
-    {
-        STL_SpuErrPrint (ERROR_FILE_FORMAT); //????
-        return ERROR_FILE_FORMAT;
-    }
+    assert (strBin);
+    assert (binFile);
+    assert (indexBin);
 
-    return 0;
-}
+    struct File file = { .name = binFile };
+    STL_Fread (&file);
 
-static int ReadBinFile (char* strBin, const char* const binFile, int* indexBin)
-{
-    // assert!!!
+    *strBin = file.buf;
+    *(*strBin + file.size - 1) = -1;
 
-    FILE* fp = fopen (binFile, "rb");
-    // naked fopen
+    if (CheckFileSignature (*strBin, indexBin, 6)) return ERROR_FILE_FORMAT;
 
-    fread (strBin, sizeof(char), FILE_MAX_SIZE_IN_BYTES, fp);
-
-    if (CheckFileSignature (strBin, "STL v5")) return ERROR_FILE_FORMAT;
-    *indexBin += SIGNATURE_LENGTH;
-
-    fclose (fp);
+    str = (char*) calloc (file.size * 10, sizeof (char));
+    assert (str);                  ///////////////////////////////
 
     return 0;
 }
 
 static int WriteInFile (const char* const asmFileNew)
 {
+    assert (asmFileNew);
+
     FILE* fp = fopen (asmFileNew, "wb");
-    // naked fopen
+    assert (fp);
 
     fwrite (str, sizeof(char), index, fp);
 
     fclose (fp);
 }
 
-                        */

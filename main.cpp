@@ -27,12 +27,12 @@ int main ()
                                             // 4    79
                                             // 5    777
 // beee 3 main funcsssssssssssssssssss
-D(  Compile ("asm3.txt", "bin.bin") )
+D(  Compile ("asm4.txt", "bin.bin") )
     printf ("Compile OK!\n");
 
 D(  SPU ("bin.bin") )
 
-//D(  DisAsm ("bin.bin", "my_asm.txt") )
+D(  Disasm ("bin.bin", "my_asm.txt") )
 
     printf ("\n\nEND!");
 
