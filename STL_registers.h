@@ -12,3 +12,5 @@ DEF_REG (RCX, 3)
 DEF_REG (RDX, 4)
 
 DEF_REG (MEOW, 5)
+
+DEF_REG (RET, 6)

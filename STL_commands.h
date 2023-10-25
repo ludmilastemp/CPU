@@ -76,6 +76,17 @@ DEF_CMD (JMP, 0x0C, 1,
     *ip = arg;
     })
 
+DEF_CMD (CALL, 0x0D, 1,
+    {
+    DO_PUSH (*ip);
+    *ip = arg;
+    })
+
+DEF_CMD (RET, 0x0E, 0,
+    {
+    DO_POP (ip);
+    })
+
 DEF_CMD (HLT, 0, 0,
     {
     return -1;

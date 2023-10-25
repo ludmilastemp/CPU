@@ -1,7 +1,7 @@
 #include "disasm.h"
 
 static char* str = 0;
-static int index = 0;
+static int index = 0;               // ip
 
 static int DisasmFile (const char* const strBin, int indexBin);
 
@@ -92,7 +92,10 @@ int DisasmOperation (const char* const strBin, int* indexBin)
 
     int command = strBin[(*indexBin)++];
 
-    if (command == -1) return -1;
+    if (command == -1)
+    {
+        return -1;
+    }
 
     switch (command & 0x3F)
     {
@@ -160,7 +163,7 @@ static int ReadBinFile (char** strBin, const char* const binFile, int* indexBin)
     *strBin = file.buf;
     *(*strBin + file.size - 1) = -1;
 
-    if (CheckFileSignature (*strBin, indexBin, 6)) return ERROR_FILE_FORMAT;
+    if (CheckFileSignature (*strBin, indexBin, 7)) return ERROR_FILE_FORMAT;
 
     str = (char*) calloc (file.size * 10, sizeof (char));
     assert (str);                  ///////////////////////////////

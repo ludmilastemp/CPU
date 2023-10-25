@@ -43,9 +43,9 @@ int Compile (const char* const asmFile, const char* const binFile)
     str = (char*) calloc (file.size, sizeof (char));
     assert (str);
 
-    WriteSignature (6, str, &ip);
+    WriteSignature (7, str, &ip);
 
-    CompileFile (&file);
+    if (CompileFile (&file)) return 1;
 
     WriteInBinFile (binFile);
 
@@ -117,6 +117,7 @@ static int CompileOperation (const char* string)
     assert (string);
 
     while (string[0] == ' ') string++;      /// пропуск \t
+    if    (string[0] == 0)   return 0;      // чего???
 
     if    (string[0] == ':')
     {
@@ -141,7 +142,11 @@ static int CompileOperation (const char* string)
 
     #include "STL_jmp.h"
 
-    /* else */ return ERROR_INCORRECT_FUNC;
+    /* else */
+    {
+        printf ("<%s>\n", string);
+        return ERROR_INCORRECT_FUNC;
+    }
 
     return 0;
 }

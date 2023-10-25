@@ -1,0 +1,29 @@
+
+:main
+        push 1
+        pop rax
+:meow
+
+        push rax
+        push 5
+        ja :Stop
+
+        push rax
+        call :discrim
+
+        push 1 rax
+        pop rax
+        jmp :meow
+:Stop
+
+        hlt
+
+:discrim
+        pop ret
+        pop rax
+        push rax
+        push rax
+        mul
+        out
+        push ret
+        ret

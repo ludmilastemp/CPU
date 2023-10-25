@@ -15,7 +15,7 @@ int SPU (const char* fileName)
     char* str = 0;
     int ip = 0;
 
-    ReadFile (&str, fileName, &ip);
+    if (ReadFile (&str, fileName, &ip)) return ERROR_FILE_FORMAT;
 
     Execute (str, ip);
 
@@ -37,7 +37,8 @@ static int Execute (const char* const str, int ip)
     int meow = 0;
     while (meow < 60)
     {
-        meow++;
+        //meow++;
+//        printf ("ip = %d \n", ip);
 
         spu.err = ExecuteCommand (str, &ip, &spu);
 
@@ -145,7 +146,7 @@ static int ReadFile (char** str, const char* const fileName, int* ip)
 
     *str = file.buf;
 
-    if (CheckFileSignature (*str, ip, 6)) return ERROR_FILE_FORMAT;
+    if (CheckFileSignature (*str, ip, 7)) return ERROR_FILE_FORMAT;
 
     return 0;
 }
