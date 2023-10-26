@@ -8,30 +8,24 @@
 
 #include "Stack_1type/STL_stack.h"
 
-typedef int SPU_Type;   /// не забудь поменять тип в стеке
+typedef int SPU_DATA_TYPE;   /// не забудь поменять тип в стеке
+
+const int floatPrecision = 100;
 
 const int nRegisters = 8;
 
 struct SPU_Struct
 {
     struct Stack stk;
-    SPU_Type registers[nRegisters];
+    SPU_DATA_TYPE registers[nRegisters];
     int err;
 };
 
-#define DEF_CMD(name,opCode, ...)                                       \
-    CMD_##name = opCode,
-
-enum OpCode
-{
-    #include "STL_commands.h"
-};
-#undef DEF_CMD
-
 enum ArgType
 {
-    T_ARG_INT = 0x40,  /// 1 << 6
-    T_ARG_REG = 0x80,  /// 1 << 7
+    T_ARG_REG = 0x20,    /// 1 << 5     32
+    T_ARG_RAM = 0x40,    /// 1 << 6     64
+    T_ARG_CONST = 0x80,  /// 1 << 7     128
 };
 
 enum SPU_Error

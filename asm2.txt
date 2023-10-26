@@ -1,8 +1,8 @@
 in
 pop rax
-in
+push 0.5
 pop rbx
-in
+push 0.6
 pop rcx
 push rbx
 push rbx

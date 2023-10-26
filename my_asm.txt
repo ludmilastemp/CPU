@@ -1,20 +1,3 @@
-  6 PUSH 1 
- 11 POP reg_1
- 13 PUSH reg_1
- 15 PUSH 5 
- 20 JA 45 
- 25 PUSH reg_1
- 27 CALL 46 
- 32 PUSH 1 reg_1
- 38 POP reg_1
- 40 JMP 13 
- 45 HLT 
- 46 POP reg_6
- 48 POP reg_1
- 50 PUSH reg_1
- 52 PUSH reg_1
- 54 MUL 
- 55 OUT 
- 56 PUSH reg_6
- 58 RET 
- 59 
+  6 JMP 16 
+ 11 JMP 16 
+ 16 

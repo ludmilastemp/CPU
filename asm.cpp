@@ -50,11 +50,15 @@ int Compile (const char* const asmFile, const char* const binFile)
     WriteInBinFile (binFile);
 
     STL_Fclose (&file);
-
+//
 //    for (int i = 0; i < 10; ++i)
 //    {
 //        printf ("labels[%d] \n", i);
-//        printf ("\t name = <%s> \n", labels[i].name);
+//        printf ("\t name = <> \n", labels[i].name);
+//        for (int j = 0; j < labels[i].lenName; ++j)
+//        {
+//            printf ("%c", labels[i].name + j);
+//        }
 //        printf ("\t byte = <%d> \n", labels[i].byte);
 //    }
 
@@ -117,7 +121,7 @@ static int CompileOperation (const char* string)
     assert (string);
 
     while (string[0] == ' ') string++;      /// пропуск \t
-    if    (string[0] == 0)   return 0;      // чего???
+    if    (string[0] == 0)   return 0;
 
     if    (string[0] == ':')
     {
@@ -158,6 +162,7 @@ static int CompileOperation (const char* string)
     if (strnicmp (string, #name, strlen(#name)) == 0)                   \
     {                                                                   \
         arg = opCode;                                                   \
+        string += strlen(#name);                                        \
     } else
 
 static int ParseArg (const char* string, unsigned char opCode)
@@ -168,7 +173,7 @@ static int ParseArg (const char* string, unsigned char opCode)
 
     if (string[0] == ':')
     {
-        str[ip++] = opCode | T_ARG_INT;
+        str[ip++] = opCode | T_ARG_CONST;
 
         int i = 0;
         for (; i < nLabel; ++i)
@@ -199,33 +204,61 @@ static int ParseArg (const char* string, unsigned char opCode)
         return 0;
     }
 
-    if (sscanf (string, "%d", &arg))
+    if (string[0] == '[')
     {
-        opCode |= T_ARG_INT;
+        opCode |= T_ARG_RAM;
+        string++;
+    }
+
+    float var = 0;
+    if (sscanf (string, "%f", &var))
+    {
+//        printf ("!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+//        printf ("var = %f\n", var);
+//        printf ("arg = %d\n", arg);
+        arg = (int)(var * floatPrecision);
+
+        opCode |= T_ARG_CONST;
 
         while ((string[0] >= '0' && string[0] <= '9') ||
-                string[0] == ' ')
+                string[0] == ' ' || string[0] == '.')
         {
             string++;
         }
 
         if (string[0] == '\r' || string[0] == '\n')
         {
-            str[ip++] = opCode | T_ARG_INT;
-            *(SPU_Type*)(str + ip) = arg;
+            str[ip++] = opCode | T_ARG_CONST;
+            *(SPU_DATA_TYPE*)(str + ip) = arg;
 
-            ip += sizeof (SPU_Type);
+            ip += sizeof (SPU_DATA_TYPE);
 
             return 0;
         }
     }
 
+    if (opCode & T_ARG_RAM)
+    {
+        while (string[0] == ' ') string++;
+        if (string[0] == ']')
+        {
+            str[ip++] = opCode;
+
+            if (opCode & T_ARG_CONST)
+            {
+                *(SPU_DATA_TYPE*)(str + ip) = arg;
+                ip += sizeof (SPU_DATA_TYPE);
+            }
+            return 0;
+        }                                               // copycasta
+    }
+
     str[ip++] = opCode | T_ARG_REG;
 
-    if (opCode & T_ARG_INT)
+    if (opCode & T_ARG_CONST)
     {
-        *(SPU_Type*)(str + ip) = arg;
-        ip += sizeof (SPU_Type);
+        *(SPU_DATA_TYPE*)(str + ip) = arg;
+        ip += sizeof (SPU_DATA_TYPE);
     }
 
     #include "STL_registers.h"
@@ -233,6 +266,12 @@ static int ParseArg (const char* string, unsigned char opCode)
     /* else */ return ERROR_INCORRECT_VALUE;
 
     str[ip++] = (char)arg;
+
+    if (opCode & T_ARG_RAM)
+    {
+        while (string[0] == ' ') string++;
+        if (string[0] != ']') return ERROR_INCORRECT_VALUE;
+    }
 
     return 0;
 }
@@ -255,6 +294,8 @@ static int WriteInBinFile (const char* const binFile)
 
 static int StrlenUpToSpace (const char* const string)
 {
+    assert (string);
+
     int i = 0;
     while (string[i] != ' ' && string[i] != '\n' && string[i] != '\0') i++;
 

@@ -21,11 +21,7 @@
 
 int main ()
 {
-                                            // 1    5
-                                            // 2    in in in
-                                            // 3    1 4 9 .. 64
-                                            // 4    79
-                                            // 5    777
+
 // beee 3 main funcsssssssssssssssssss
 D(  Compile ("asm6.txt", "bin.bin") )
     printf ("Compile OK!\n");
@@ -36,6 +32,26 @@ D(  Disasm ("bin.bin", "my_asm.txt") )
 D(  SPU ("bin.bin") )
 
     printf ("\n\nEND!");
+
+
+//    for (int i = 0; i < 10; ++i)
+//    {
+//        for (int j = 0; j < 20; ++j)
+//        {
+//            if ((i - 5) * (i - 5) + (j - 10) * (j - 10) <= 4 * 4) ram[20 * i + j] = 5;
+//            else ram[20 * i + j] = 0;
+//        }
+//    }
+//
+//    for (int i = 0; i < 10; ++i)
+//    {
+//        for (int j = 0; j < 20; ++j)
+//        {
+//            if (ram[i * 20 + j] == 0) printf (".");
+//            else printf ("*");
+//        }
+//        printf ("\n");
+//    }
 
     return 0;
 }

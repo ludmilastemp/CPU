@@ -1,0 +1,44 @@
+
+:main
+        push 0
+        pop rax
+
+:loop1
+        push rax
+        push 10
+        je :stop_loop1
+
+        push 0
+        push rbx
+
+:loop2
+        push rbx
+        push 20
+        je :stop_loop2
+
+        push rax
+        push 20
+        mul
+        push rbx
+        add
+        out
+
+        push 1 rbx
+        pop rbx
+
+        jmp :loop2
+
+
+:stop_loop2
+
+        push 1 rax
+        pop rax
+
+        jmp :loop1
+
+
+:stop_loop1
+
+        hlt
+
+

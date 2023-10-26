@@ -1,12 +1,10 @@
-        push 79
-        push 43
 
-        jb :meow
-        push 777
-        out
-        hlt
-:meow
+        jmp :label_1
 
-        push 555
-        out
-        hlt
+        jmp :label_2
+
+:label_1
+
+:label_2
+
+:label_3

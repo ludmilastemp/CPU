@@ -1,7 +1,7 @@
 #include "disasm.h"
 
 static char* str = 0;
-static int index = 0;               // ip
+static int index = 0;
 
 static int DisasmFile (const char* const strBin, int indexBin);
 
@@ -16,13 +16,16 @@ static int ReadBinFile (char** strBin, const char* const binFile, int* indexBin)
 static int WriteInFile (const char* const asmFileNew);
 
 int Disasm (const char* binFile, const char* asmFileNew)
-{                               // typedef
+{
+    assert (binFile);
+    assert (asmFileNew);
+
     char* strBin = 0;
     int indexBin = 0;
 
     ReadBinFile (&strBin, binFile, &indexBin);
 
-    DisasmFile (strBin, indexBin);
+    DisasmFile  (strBin, indexBin);
 
     WriteInFile (asmFileNew);
 
@@ -33,6 +36,8 @@ int Disasm (const char* binFile, const char* asmFileNew)
 
 static int DisasmFile (const char* const strBin, int indexBin)
 {
+    assert (strBin);
+
     int line = 0;
     int error = 0;
     while (true)
@@ -82,12 +87,11 @@ static int DisasmFile (const char* const strBin, int indexBin)
 
 int DisasmOperation (const char* const strBin, int* indexBin)
 {
-    char strTemp[10] = "";
+    assert (strBin);
+    assert (indexBin);
 
-    sprintf (strTemp, "%3d", *indexBin);
-    strcpy (str + index, strTemp);
+    index += sprintf (str + index, "%3d", *indexBin);
 
-    index += strlen (strTemp);
     str[index++] = ' ';
 
     int command = strBin[(*indexBin)++];
@@ -97,7 +101,7 @@ int DisasmOperation (const char* const strBin, int* indexBin)
         return -1;
     }
 
-    switch (command & 0x3F)
+    switch (command & 0x1F)
     {
         #include "STL_commands.h"
 
@@ -117,18 +121,23 @@ int DisasmOperation (const char* const strBin, int* indexBin)
 
 static int PrintArg (const char* const strBin, int* indexBin, int command)
 {
-    int arg = 0;
-    char argc[10] = "";
+    assert (strBin);
+    assert (indexBin);
 
-    if (command & T_ARG_INT)
+    SPU_DATA_TYPE arg = 0;
+
+    if (command & T_ARG_RAM)
     {
-        arg = *(int*)(strBin + *indexBin);
+        str[index++] = '[';
+    }
 
-        sprintf (argc, "%d", arg);
-        strcpy (str + index, argc);
+    if (command & T_ARG_CONST)
+    {
+        arg = *(SPU_DATA_TYPE*)(strBin + *indexBin);
 
-        index += strlen (argc);
-        *indexBin += sizeof (int);
+        index += sprintf (str + index, "%d", arg);
+
+        *indexBin += sizeof (SPU_DATA_TYPE);
 
         str[index++] = ' ';
     }
@@ -137,8 +146,7 @@ static int PrintArg (const char* const strBin, int* indexBin, int command)
     {
         arg = *(strBin + *indexBin);
 
-        strcpy (str + index, "reg_");
-        index += sizeof ("reg_") - 1;
+        index += sprintf (str + index, "reg_");
 
         str[index++] = arg + '0';
 
@@ -146,6 +154,11 @@ static int PrintArg (const char* const strBin, int* indexBin, int command)
         else return ERROR_INCORRECT_VALUE;
 
         *indexBin += sizeof (char);
+    }
+
+    if (command & T_ARG_RAM)
+    {
+        str[index++] = ']';
     }
 
     return 0;
@@ -166,7 +179,7 @@ static int ReadBinFile (char** strBin, const char* const binFile, int* indexBin)
     if (CheckFileSignature (*strBin, indexBin, 7)) return ERROR_FILE_FORMAT;
 
     str = (char*) calloc (file.size * 10, sizeof (char));
-    assert (str);                  ///////////////////////////////
+    assert (str);
 
     return 0;
 }

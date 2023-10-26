@@ -1,0 +1,37 @@
+
+:main
+        push 6
+
+        call :factorial
+
+        out
+
+        hlt
+
+:factorial
+        pop rax
+
+        push 1
+        push rax
+        je :nis0
+        jmp :nisnot0
+
+:n_is_0
+        push 1
+
+        ret
+
+
+:n_is_not_0
+        push rax
+
+        push rax
+        push 1
+        sub
+
+        call :factorial
+
+        mul
+
+        ret
+

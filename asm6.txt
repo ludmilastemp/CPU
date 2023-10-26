@@ -2,14 +2,101 @@
 :main
         push 1
         pop rax
+        push 5
+        pop rbx
+        push 6
+        pop rcx
+
+        jmp :SolveQuadraticEquation
+
+:SolveQuadraticEquation
+
+        push 0
+        push rax
+        je :SolveLinearEquation
+
+        call :discrim
+        pop rax
+
+        push 0
+        push rax
+        je :OneRoot
+
+        push 0
+        push rax
+        jb :TwoRoot
+
+        jmp :ZeroRoot
+
+:SolveLinearEquation
+
+        push 0
+        push rbx
+        jne :OneRoot
+
+        push 0
+        push rcx
+        je :InfinitelyRoot
+
+        jmp :ZeroRoot
+
+:discrim
+        push rbx
+        push rbx
+        mul
+
+        push 4
+        push rax
+        push rcx
+        mul
+        mul
+        sub
+
+        ret
+
+:ZeroRoot
+        push 0
+        out
+        hlt
+
+:OneRoot
+        push 1
+        out
+
+        push -1
+        push rcx
+        mul
+        push rbx
+        div
+        out
+        hlt
+
+:TwoRoot
+        push 2
+        out
+        hlt
+
+:InfinitelyRoot
+        push 8
+        out
+        hlt
+
+
+
+
+        push 1
+        pop rax
 :meow
 
         push rax
-        push 5
+        push 7
         ja :Stop
 
         push rax
+        pop [15]
         call :discrim
+        push ret
+        out
 
         push 1 rax
         pop rax
@@ -18,12 +105,3 @@
 
         hlt
 
-:discrim
-        pop ret
-        pop rax
-        push rax
-        push rax
-        mul
-        out
-        push ret
-        ret

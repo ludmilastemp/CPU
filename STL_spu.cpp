@@ -1,12 +1,22 @@
 #include "STL_spu.h"
 
+const int RAM_SIZE = 1000;
+
+static SPU_DATA_TYPE ram[RAM_SIZE] = { 0 };
+static int index_ret = 610;
+
 static int Execute (const char* const str, int ip);
 
 static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu);
 
-static int DecodeArg (const char* const str, int* ip, int command, SPU_Type* arg, int* reg);
+static int DecodeArg (const char* const str, int* ip, int command, SPU_DATA_TYPE* arg, int* reg);
 
 static int ReadFile (char** str, const char* const fileName, int* ip);
+
+#define verified  || AssertFailed ((__LINE__)
+
+#define verified  || ({ return 1; })
+
 
 int SPU (const char* fileName)
 {
@@ -17,7 +27,7 @@ int SPU (const char* fileName)
 
     if (ReadFile (&str, fileName, &ip)) return ERROR_FILE_FORMAT;
 
-    Execute (str, ip);
+    Execute (str, ip) == 0 onerror_ret;
 
     free (str);
 
@@ -34,13 +44,11 @@ static int Execute (const char* const str, int ip)
 
     int line = 0;
 
-    int meow = 0;
-    while (meow < 60)
+    while (true)
     {
-        //meow++;
-//        printf ("ip = %d \n", ip);
-
         spu.err = ExecuteCommand (str, &ip, &spu);
+
+//        StackDump (&spu.stk);
 
         if (spu.err == -1) break;
 
@@ -80,17 +88,32 @@ static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu)
     assert (spu);
 
     int command = 0;
-    SPU_Type var1 = 0, var2 = 0;
+    SPU_DATA_TYPE var1 = 0, var2 = 0;
 
     command = str[(*ip)++];
 
-    SPU_Type arg = 0;
-    int reg = 0;
+    printf ("ip = %d\n", *ip - 1);
+    printf ("command = 0x%x\n", command);
+    printf ("rax = %d\n", spu->registers[1] / 100);
+    printf ("rbx = %d\n", spu->registers[2] / 100);
+    printf ("\n\n\n");
+
+    SPU_DATA_TYPE arg = 0;
+    int reg     = 0;
+    int ram_ptr = 0;
 
     DecodeArg (str, ip, command, &arg, &reg);
-    arg += spu->registers[reg];
 
-    switch (command & 0x3F) /// 00 11 11 11
+//    arg *= floatPrecision;
+
+    if (command & T_ARG_REG) arg += spu->registers[reg];
+    if (command & T_ARG_RAM)
+    {
+        ram_ptr = arg / floatPrecision;
+        arg = ram[arg / floatPrecision];
+    }
+
+    switch (command & 0x1F) /// 00 01 11 11
     {
         #include "STL_commands.h"
 
@@ -98,6 +121,10 @@ static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu)
 
         default:
             printf ("I'm default\n");
+            printf ("command = 0x%x\n", command);
+            printf ("        = 0x%x\n", command & 0x1F);
+            printf ("ip = %d\n", *ip);
+
             return ERROR_INCORRECT_FUNC;
     }
 
@@ -110,17 +137,17 @@ static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu)
 
 #undef MAKE_COND_JMP
 
-static int DecodeArg (const char* const str, int* ip, int command, SPU_Type* arg, int* reg)
+static int DecodeArg (const char* const str, int* ip, int command, SPU_DATA_TYPE* arg, int* reg)
 {
     assert (str);
     assert (ip);
     assert (arg);
     assert (reg);
 
-    if (command & T_ARG_INT)
+    if (command & T_ARG_CONST)
     {
-        *arg = *(const SPU_Type*)(str + *ip);
-        *ip += sizeof (SPU_Type);
+        *arg = *(const SPU_DATA_TYPE*)(str + *ip);
+        *ip += sizeof (SPU_DATA_TYPE);
     }
     if (command & T_ARG_REG)
     {
