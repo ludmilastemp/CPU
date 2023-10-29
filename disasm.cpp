@@ -1,4 +1,4 @@
-#include "disasm.h"
+#include "include/disasm.h"
 
 static char* str = 0;
 static int index = 0;
@@ -8,8 +8,6 @@ static int DisasmFile (const char* const strBin, int indexBin);
 static int DisasmOperation (const char* const strBin, int* indexBin);
 
 static int PrintArg (const char* const strBin, int* indexBin, int command);
-
-static int CheckFileSignature (const char* const str, const char* const signature);
 
 static int ReadBinFile (char** strBin, const char* const binFile, int* indexBin);
 
@@ -40,6 +38,7 @@ static int DisasmFile (const char* const strBin, int indexBin)
 
     int line = 0;
     int error = 0;
+
     while (true)
     {
         error = DisasmOperation (strBin, &indexBin);
@@ -57,14 +56,16 @@ static int DisasmFile (const char* const strBin, int indexBin)
 
         str[index++] = '\n';
     }
+
+    return 0;
 }
 
 #define DEF_CMD(name, opCode, ...)                                      \
     case opCode:                                                        \
         {                                                               \
                                                                         \
-        int len = strlen (#name);                                       \
-        strncpy (str + index, #name, len);                              \
+        int len = strlen ("\t\t" #name);                                       \
+        strncpy (str + index, "\t\t" #name, len);                              \
         index += len;                                                   \
                                                                         \
         str[index++] = ' ';                                             \
@@ -76,8 +77,8 @@ static int DisasmFile (const char* const strBin, int indexBin)
     case opCode:                                                        \
         {                                                               \
                                                                         \
-        int len = strlen (#name);                                       \
-        strncpy (str + index, #name, len);                              \
+        int len = strlen ("\t\t" #name);                                       \
+        strncpy (str + index, "\t\t" #name, len);                              \
         index += len;                                                   \
                                                                         \
         str[index++] = ' ';                                             \
@@ -103,9 +104,9 @@ int DisasmOperation (const char* const strBin, int* indexBin)
 
     switch (command & 0x1F)
     {
-        #include "STL_commands.h"
+        #include "include/STL_commands.h"
 
-        #include "STL_jmp.h"
+        #include "include/STL_jmp.h"
 
         default:
             printf ("I default\n");
@@ -133,7 +134,7 @@ static int PrintArg (const char* const strBin, int* indexBin, int command)
 
     if (command & T_ARG_CONST)
     {
-        arg = *(SPU_DATA_TYPE*)(strBin + *indexBin);
+        arg = (int)(*(const SPU_DATA_TYPE*)(strBin + *indexBin) / floatPrecision);
 
         index += sprintf (str + index, "%d", arg);
 
@@ -148,7 +149,7 @@ static int PrintArg (const char* const strBin, int* indexBin, int command)
 
         index += sprintf (str + index, "reg_");
 
-        str[index++] = arg + '0';
+        str[index++] = (char)(arg + '0');
 
         if (0 <= arg && arg <= 8) ;
         else return ERROR_INCORRECT_VALUE;
@@ -194,5 +195,7 @@ static int WriteInFile (const char* const asmFileNew)
     fwrite (str, sizeof(char), index, fp);
 
     fclose (fp);
+
+    return 0;
 }
 

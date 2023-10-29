@@ -5,23 +5,60 @@
 
 :loop1
         push rax
-        push 10
+        push 20
         je :stop_loop1
 
         push 0
-        push rbx
+        pop rbx
 
 :loop2
         push rbx
-        push 20
+        push 40
         je :stop_loop2
 
         push rax
+        push 10
+        sub
+        push rax
+        push 10
+        sub
+        mul
+
+        push 1
+        div
+
+        push rbx
         push 20
+        sub
+        push rbx
+        push 20
+        sub
+        mul
+
+        push 4
+        div
+
+        add
+
+        push 8
+        push 8
+        mul
+
+        jbe :yes_circle
+        jmp :no_circle
+
+:yes_circle
+
+        push 40
+        push rax
         mul
         push rbx
         add
-        out
+        pop rcx
+        push 5
+        pop [rcx]
+
+:no_circle
 
         push 1 rbx
         pop rbx
@@ -40,5 +77,3 @@
 :stop_loop1
 
         hlt
-
-

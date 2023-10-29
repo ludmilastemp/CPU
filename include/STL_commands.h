@@ -9,8 +9,8 @@ DEF_CMD (PUSH, 0x01, 1,
 
 DEF_CMD (POP, 0x02, 1,
     {
-    if (command & T_ARG_REG) DO_POP (&(spu->registers[reg]));
-    if (command & T_ARG_RAM) DO_POP (&(ram[ram_ptr]));
+    if (command & T_ARG_RAM) { DO_POP (&(ram[ram_ptr])); }
+    else if (command & T_ARG_REG) DO_POP (&(spu->registers[reg]));
     })
 
 DEF_CMD (ADD, 0x03, 0,
@@ -45,18 +45,18 @@ DEF_CMD (DIV, 0x06, 0,
 DEF_CMD (SQRT, 0x07, 0,
     {
     DO_POP (&var1);
-    DO_PUSH ((int)sqrt(var1));      //
+    DO_PUSH ((int)(sqrt(var1 / floatPrecision) * floatPrecision));
     })
 
 DEF_CMD (SIN, 0x08, 0,
     {
     DO_POP (&var1);
-    DO_PUSH ((int)sin(var1));       //
+    DO_PUSH ((int)(sin(var1 / floatPrecision) * floatPrecision));       //
     })
 
 DEF_CMD (COS, 0x09, 0, {
     DO_POP (&var1);
-    DO_PUSH ((int)cos(var1));       //
+    DO_PUSH ((int)(cos(var1 / floatPrecision) * floatPrecision));
     })
 
 DEF_CMD (IN, 0x0A, 0,
@@ -69,7 +69,6 @@ DEF_CMD (IN, 0x0A, 0,
 
 DEF_CMD (OUT, 0x0B, 0,
     {
-    double var = 0;
     DO_POP (&var1);
     printf ("OUT = %g\n", var1 * 1.0 / floatPrecision);
     })

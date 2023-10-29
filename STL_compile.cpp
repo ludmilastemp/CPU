@@ -1,4 +1,4 @@
-#include "asm.h"
+#include "include/STL_compile.h"
 
 static char* str = 0;
 static int  ip = 0;
@@ -50,16 +50,18 @@ int Compile (const char* const asmFile, const char* const binFile)
     WriteInBinFile (binFile);
 
     STL_Fclose (&file);
-//
-//    for (int i = 0; i < 10; ++i)
+
+//    for (int i = 0; i < nLabel; ++i)
 //    {
 //        printf ("labels[%d] \n", i);
-//        printf ("\t name = <> \n", labels[i].name);
+//        printf ("\t name = <");
 //        for (int j = 0; j < labels[i].lenName; ++j)
 //        {
-//            printf ("%c", labels[i].name + j);
+//            printf ("%c", (labels[i].name)[j]);
 //        }
-//        printf ("\t byte = <%d> \n", labels[i].byte);
+//        printf (">\n");
+//        printf ("\t lenN = %d \n", labels[i].lenName);
+//        printf ("\t byte = %d \n", labels[i].byte);
 //    }
 
     return 0;
@@ -76,7 +78,7 @@ static int CompileFile (File* file)
     {
         while ((file->strings[line]).len == 1) line++;
 
-//        printf ("line = %d\n", line);
+//        printf ("line = %d\n", line + 1);
 
         error = CompileOperation ((file->strings[line++]).str);
 
@@ -90,6 +92,9 @@ static int CompileFile (File* file)
 
     for (int i = 0; i < nFixup; i++)
     {
+//        printf ("fixup = %d\n", i);
+//        printf ("\t index = %d\n", fixups[i].labelIndex);
+//        printf ("\t byte  = %d\n", fixups[i].byte);
         *(int*)(str + fixups[i].byte) = labels[fixups[i].labelIndex].byte;
     }
 
@@ -126,7 +131,7 @@ static int CompileOperation (const char* string)
     if    (string[0] == ':')
     {
         int i = 0;
-        for (; i < nLabel - 1; ++i)
+        for (; i <= nLabel - 1; ++i)
         {
             if (strncmp (string + 1, labels[i].name, labels[i].lenName) == 0)
             {
@@ -142,9 +147,9 @@ static int CompileOperation (const char* string)
     }
     else /* if */
 
-    #include "STL_commands.h"
+    #include "include/STL_commands.h"
 
-    #include "STL_jmp.h"
+    #include "include/STL_jmp.h"
 
     /* else */
     {
@@ -184,6 +189,11 @@ static int ParseArg (const char* string, unsigned char opCode)
                 {
                     *(int*)(str + ip) = labels[i].byte;
                 }
+                else
+                {
+                    fixups[nFixup].byte = ip;
+                    fixups[nFixup++].labelIndex = nLabel;
+                }
 
                 ip += sizeof (int);
 
@@ -193,6 +203,7 @@ static int ParseArg (const char* string, unsigned char opCode)
 
         labels[i].name = string + 1;
         labels[i].lenName = StrlenUpToSpace (string + 1);
+        labels[i].byte = -1;
 
         fixups[nFixup].byte = ip;
         fixups[nFixup++].labelIndex = nLabel;
@@ -250,7 +261,7 @@ static int ParseArg (const char* string, unsigned char opCode)
                 ip += sizeof (SPU_DATA_TYPE);
             }
             return 0;
-        }                                               // copycasta
+        }                           // copycasta
     }
 
     str[ip++] = opCode | T_ARG_REG;
@@ -261,7 +272,7 @@ static int ParseArg (const char* string, unsigned char opCode)
         ip += sizeof (SPU_DATA_TYPE);
     }
 
-    #include "STL_registers.h"
+    #include "include/STL_registers.h"
 
     /* else */ return ERROR_INCORRECT_VALUE;
 

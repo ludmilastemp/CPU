@@ -1,4 +1,4 @@
-#include "STL_spu.h"
+#include "include/STL_spu.h"
 
 const int RAM_SIZE = 1000;
 
@@ -13,10 +13,9 @@ static int DecodeArg (const char* const str, int* ip, int command, SPU_DATA_TYPE
 
 static int ReadFile (char** str, const char* const fileName, int* ip);
 
-#define verified  || AssertFailed ((__LINE__)
+// #define verified  || AssertFailed ((__LINE__)
 
-#define verified  || ({ return 1; })
-
+// #define verified  || ({ return 1; })
 
 int SPU (const char* fileName)
 {
@@ -27,9 +26,19 @@ int SPU (const char* fileName)
 
     if (ReadFile (&str, fileName, &ip)) return ERROR_FILE_FORMAT;
 
-    Execute (str, ip) == 0 onerror_ret;
+    Execute (str, ip); // == 0 onerror_ret;
 
     free (str);
+
+    for (int i = 0; i < 20; ++i)
+    {
+        for (int j = 0; j < 40; ++j)
+        {
+            if (ram[i * 40 + j] == 0) printf (".");
+            else printf ("*");
+        }
+        printf ("\n");
+    }
 
     return 0;
 }
@@ -42,11 +51,11 @@ static int Execute (const char* const str, int ip)
     struct SPU_Struct spu = { };
     SpuStructCtor (&spu);
 
-    int line = 0;
-
     while (true)
     {
         spu.err = ExecuteCommand (str, &ip, &spu);
+
+//        printf ("meow = %d\n", spu.registers[0]);
 
 //        StackDump (&spu.stk);
 
@@ -55,10 +64,8 @@ static int Execute (const char* const str, int ip)
         if (spu.err)
         {
             STL_SpuErrPrint (spu.err);
-            printf ("line = %d\n", line + 1);
             return spu.err;
         }
-        line++;
     }
 
     SpuStructDtor (&spu);
@@ -92,19 +99,18 @@ static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu)
 
     command = str[(*ip)++];
 
-    printf ("ip = %d\n", *ip - 1);
-    printf ("command = 0x%x\n", command);
-    printf ("rax = %d\n", spu->registers[1] / 100);
-    printf ("rbx = %d\n", spu->registers[2] / 100);
-    printf ("\n\n\n");
+//    printf ("ip = %d\n", *ip - 1);
+//    printf ("command = 0x%x\n", command);
+
+//    printf ("rax = %d\n", spu->registers[1] / 100);
+//    printf ("rbx = %d\n", spu->registers[2] / 100);
+//    printf ("\n\n\n");
 
     SPU_DATA_TYPE arg = 0;
     int reg     = 0;
     int ram_ptr = 0;
 
     DecodeArg (str, ip, command, &arg, &reg);
-
-//    arg *= floatPrecision;
 
     if (command & T_ARG_REG) arg += spu->registers[reg];
     if (command & T_ARG_RAM)
@@ -115,9 +121,9 @@ static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu)
 
     switch (command & 0x1F) /// 00 01 11 11
     {
-        #include "STL_commands.h"
+        #include "include/STL_commands.h"
 
-        #include "STL_jmp.h"
+        #include "include/STL_jmp.h"
 
         default:
             printf ("I'm default\n");

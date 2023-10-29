@@ -1,6 +1,4 @@
-#include "STL_spu_struct.h"
-
-static char errStr[500] = "ERROR ";
+#include "include/STL_spu_struct.h"
 
 static void STL_Print (const char* const fmt, ...);
 
@@ -59,31 +57,6 @@ STL_SpuStructDump (const SPU_Struct* spu)
     {
         STL_Print ("r%d = %d\n", i, spu->registers[i]);
     }
-}
-
-char*
-STL_SpuErrPrint (int err)
-{
-    char str[100] = " ";
-
-    sprintf (errStr, "\n\n");
-
-#define SpuPrintErrCheck(x)                  \
-    if (err % (2 * x) >= x)                  \
-    {                                        \
-        sprintf (str, "ERROR! " #x "\n");    \
-        strcat (errStr, str);                \
-    }
-
-    SpuPrintErrCheck (ERROR_INCORRECT_FUNC);
-    SpuPrintErrCheck (ERROR_INCORRECT_VALUE);
-    SpuPrintErrCheck (ERROR_FILE_FORMAT);
-
-#undef SpuPrintErrCheck
-
-    STL_Print ("%s", errStr);
-
-    return errStr;
 }
 
 static void STL_Print (const char* const fmt, ...)
