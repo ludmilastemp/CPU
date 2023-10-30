@@ -9,8 +9,7 @@ DEF_CMD (PUSH, 0x01, 1,
 
 DEF_CMD (POP, 0x02, 1,
     {
-    if (command & T_ARG_RAM) { DO_POP (&(ram[ram_ptr])); }
-    else if (command & T_ARG_REG) DO_POP (&(spu->registers[reg]));
+    DO_POP (argPtr);
     })
 
 DEF_CMD (ADD, 0x03, 0,
@@ -89,6 +88,7 @@ DEF_CMD (RET, 0x0E, 0,
     {
     index_ret -= 4;
     *ip = ram[index_ret];
+    ram[index_ret] = 0;
     })
 
 DEF_CMD (HLT, 0, 0,

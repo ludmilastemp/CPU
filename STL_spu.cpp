@@ -9,7 +9,8 @@ static int Execute (const char* const str, int ip);
 
 static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu);
 
-static int DecodeArg (const char* const str, int* ip, int command, SPU_DATA_TYPE* arg, int* reg);
+static int DecodeArg (const char* const str, int* ip, int command,
+        SPU_Struct* spu, SPU_DATA_TYPE* arg, int** argPtr);
 
 static int ReadFile (char** str, const char* const fileName, int* ip);
 
@@ -30,15 +31,15 @@ int SPU (const char* fileName)
 
     free (str);
 
-    for (int i = 0; i < 20; ++i)
-    {
-        for (int j = 0; j < 40; ++j)
-        {
-            if (ram[i * 40 + j] == 0) printf (".");
-            else printf ("*");
-        }
-        printf ("\n");
-    }
+//    for (int i = 0; i < 20; ++i)
+//    {
+//        for (int j = 0; j < 40; ++j)
+//        {
+//            if (ram[i * 40 + j] == 0) printf (".");
+//            else printf ("*");
+//        }
+//        printf ("\n");
+//    }
 
     return 0;
 }
@@ -54,8 +55,6 @@ static int Execute (const char* const str, int ip)
     while (true)
     {
         spu.err = ExecuteCommand (str, &ip, &spu);
-
-//        printf ("meow = %d\n", spu.registers[0]);
 
 //        StackDump (&spu.stk);
 
@@ -108,16 +107,10 @@ static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu)
 
     SPU_DATA_TYPE arg = 0;
     int reg     = 0;
-    int ram_ptr = 0;
+    int* argPtr = 0;
 
-    DecodeArg (str, ip, command, &arg, &reg);
+    DecodeArg (str, ip, command, spu, &arg, &argPtr);
 
-    if (command & T_ARG_REG) arg += spu->registers[reg];
-    if (command & T_ARG_RAM)
-    {
-        ram_ptr = arg / floatPrecision;
-        arg = ram[arg / floatPrecision];
-    }
 
     switch (command & 0x1F) /// 00 01 11 11
     {
@@ -143,26 +136,38 @@ static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu)
 
 #undef MAKE_COND_JMP
 
-static int DecodeArg (const char* const str, int* ip, int command, SPU_DATA_TYPE* arg, int* reg)
+static int DecodeArg (const char* const str, int* ip, int command,
+        SPU_Struct* spu, SPU_DATA_TYPE* arg, int** argPtr)
 {
     assert (str);
     assert (ip);
+    assert (spu);
     assert (arg);
-    assert (reg);
+    assert (argPtr);
 
     if (command & T_ARG_CONST)
     {
         *arg = *(const SPU_DATA_TYPE*)(str + *ip);
         *ip += sizeof (SPU_DATA_TYPE);
     }
+
     if (command & T_ARG_REG)
     {
-        *reg = *(str + *ip);
+        int reg = *(str + *ip);
 
-        if (0 <= *reg && *reg <= nRegisters) ;
+        if (0 <= reg && reg <= nRegisters) ;
         else return ERROR_INCORRECT_VALUE;
 
         *ip += sizeof (char);
+
+        *arg += spu->registers[reg];
+        *argPtr = &(spu->registers[reg]);
+    }
+
+    if (command & T_ARG_RAM)
+    {
+        *arg = ram[*arg / floatPrecision];
+        *argPtr = &(ram[*arg / floatPrecision]);
     }
 
     return 0;

@@ -6,6 +6,7 @@
 
 #include "STL_spu_struct_const.h"
 #include "STL_spu_const.h"
+#include "STL_labels.h"
 #include "STL_header.h"
 #include "STL_file_open.h"
 

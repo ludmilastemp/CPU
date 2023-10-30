@@ -134,7 +134,7 @@ static int PrintArg (const char* const strBin, int* indexBin, int command)
 
     if (command & T_ARG_CONST)
     {
-        arg = (int)(*(const SPU_DATA_TYPE*)(strBin + *indexBin) / floatPrecision);
+        arg = (int)(*(const SPU_DATA_TYPE*)(strBin + *indexBin));
 
         index += sprintf (str + index, "%d", arg);
 
