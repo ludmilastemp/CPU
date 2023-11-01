@@ -105,11 +105,38 @@ static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu)
 //    printf ("rbx = %d\n", spu->registers[2] / 100);
 //    printf ("\n\n\n");
 
+    struct Arg_t
+    {
+        SPU_DATA_TYPE value;
+        SPU_DATA_TYPE* location;
+    };
+
     SPU_DATA_TYPE arg = 0;
-    int reg     = 0;
     int* argPtr = 0;
 
     DecodeArg (str, ip, command, spu, &arg, &argPtr);
+
+    // push 10
+    // pop rax
+    //
+    /*
+    struct Argument
+    {
+        ArgType_t type;
+        union {
+            int reg_id;
+            float imm;
+        };
+    }; */
+
+    //StackType_t GetValue( Argument* arg) { switch (arg->type) {regs[reg_id] imm}}
+
+    // push rax + rbx
+    // push rax + 10
+    // push 10 + 30
+
+    // + : GetValue(arg1) + GetValue(arg2)
+
 
 
     switch (command & 0x1F) /// 00 01 11 11

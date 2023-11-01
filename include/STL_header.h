@@ -5,6 +5,8 @@
 #include <string.h>
 #include <assert.h>
 
+#include "STL_spu_struct_const.h"
+
 struct STL_Header
 {
    char magic[5] = {'S', 'T', 'L', ' ', 'v'};

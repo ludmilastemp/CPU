@@ -9,9 +9,10 @@
 
 struct Label
 {
+    static const int POISON = -1;
     const char* name;
     int lenName;
-    int byte;
+    int byte; // address
 };
 
 struct Labels
@@ -22,8 +23,8 @@ struct Labels
 
 struct Fixup
 {
-    int byte;
-    int labelIndex;
+    int byte;   // address
+    int labelIndex; //
 };
 
 struct Fixups

@@ -12,6 +12,8 @@ int LabelsStructCtor (Labels* labels)
     {
         // labels = ...
     }
+
+    return 0;
 }
 
 int LabelsStructDtor (Labels* labels)
@@ -24,6 +26,8 @@ int LabelsStructDtor (Labels* labels)
     {
         // labels = ...
     }
+
+    return 0;
 }
 
 int FixupsStructCtor (Fixups* fixups)
@@ -36,6 +40,8 @@ int FixupsStructCtor (Fixups* fixups)
     {
         // labels = ...
     }
+
+    return 0;
 }
 
 int FixupsStructDtor (Fixups* fixups)
@@ -48,6 +54,8 @@ int FixupsStructDtor (Fixups* fixups)
     {
         // fixups = ...
     }
+
+    return 0;
 }
 
 int LabelsStructPrint (const Labels* labels)
@@ -109,7 +117,7 @@ int SetLabelArg (const char* string, char* str, int* ip, Labels* labels, Fixups*
 
     int nLabel = FindLabel (string, labels);
 
-    if (nLabel < labels->nLabels && labels->labels[nLabel].byte != -1)
+    if (nLabel < labels->nLabels && labels->labels[nLabel].byte != -1) // Label::POISON)  // POISON
     {
         *(SPU_DATA_TYPE*)(str + *ip) = labels->labels[nLabel].byte;
 

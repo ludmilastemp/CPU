@@ -1,4 +1,4 @@
-  6 		PUSH 600 
+  6 		PUSH 700 
  11 		CALL 18 
  16 		OUT 
  17 		HLT 

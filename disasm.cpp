@@ -64,8 +64,8 @@ static int DisasmFile (const char* const strBin, int indexBin)
     case opCode:                                                        \
         {                                                               \
                                                                         \
-        int len = strlen ("\t\t" #name);                                       \
-        strncpy (str + index, "\t\t" #name, len);                              \
+        int len = strlen ("\t\t" #name);                                \
+        strncpy (str + index, "\t\t" #name, len);                       \
         index += len;                                                   \
                                                                         \
         str[index++] = ' ';                                             \
@@ -73,18 +73,7 @@ static int DisasmFile (const char* const strBin, int indexBin)
         }                                                               \
         break;
 
-#define MAKE_COND_JMP(name, opCode, ...)                                \
-    case opCode:                                                        \
-        {                                                               \
-                                                                        \
-        int len = strlen ("\t\t" #name);                                       \
-        strncpy (str + index, "\t\t" #name, len);                              \
-        index += len;                                                   \
-                                                                        \
-        str[index++] = ' ';                                             \
-                                                                        \
-        }                                                               \
-        break;
+#define MAKE_COND_JMP(name, opCode, ...) DEF_CMD(name, opCode, __VA_ARGS__)
 
 int DisasmOperation (const char* const strBin, int* indexBin)
 {

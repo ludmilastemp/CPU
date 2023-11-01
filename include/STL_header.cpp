@@ -24,7 +24,7 @@ int CheckFileSignature (const char* const str, int* ip, const int version)
 
     if (strncmp (str, header.magic, strlen (header.magic)) != 0)
     {
-        return -1;
+        return ERROR_FILE_FORMAT;
     }
 
     *ip += strlen (header.magic);

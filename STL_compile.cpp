@@ -23,17 +23,17 @@ int Compile (const char* const asmFile, const char* const binFile)
 
     struct File file = { };
     STL_SplitFileIntoLines (&file, asmFile);
-
+    1;
     str = (char*) calloc (file.size, sizeof (char));
     assert (str);
+                // const
+    WriteSignature (7, str, &ip)                                    && ({ return ERROR_EXIT; 1; });
 
-    WriteSignature (7, str, &ip);
+    CompileFile (&file)                                             && ({ return ERROR_EXIT; 1; });
 
-    if (CompileFile (&file)) return 1;
+    WriteInBinFile (binFile)                                        && ({ return ERROR_EXIT; 1; });
 
-    WriteInBinFile (binFile);
-
-    STL_Fclose (&file);
+    STL_Fclose (&file)                                              && ({ return ERROR_EXIT; 1; });
 
     return 0;
 }
@@ -42,8 +42,8 @@ static int CompileFile (File* file)
 {
     assert (file);
 
-    LabelsStructCtor (&labels);
-    FixupsStructCtor (&fixups);
+    LabelsStructCtor (&labels)                                      && ({ return ERROR_EXIT; 1; });
+    FixupsStructCtor (&fixups)                                      && ({ return ERROR_EXIT; 1; });
 
     int line = 0;
     int error = 0;
@@ -52,25 +52,23 @@ static int CompileFile (File* file)
     {
         while ((file->strings[line]).len == 1) line++;
 
-//        printf ("line = %d\n", line + 1);
-
         error = CompileOperation ((file->strings[line++]).str);
 
         if (error)
         {
             printf ("line = %d\n", line);
             STL_SpuErrPrint (error);
-            return error;
+            return ERROR_EXIT;
         }
     }
-
-    DoFixups (str, &labels, &fixups);
-
+                                                            //      "очень опасный дефайн, никогда не используй @d3phys"
+    DoFixups (str, &labels, &fixups)                                && ({ return ERROR_EXIT; 1; });
+               // Dump
     LabelsStructPrint (&labels);
     FixupsStructPrint (&fixups, &labels);
 
-    LabelsStructDtor (&labels);
-    FixupsStructDtor (&fixups);
+    LabelsStructDtor (&labels)                                      && ({ return ERROR_EXIT; 1; });
+    FixupsStructDtor (&fixups)                                      && ({ return ERROR_EXIT; 1; });
 
     return 0;
 }
@@ -93,6 +91,7 @@ static int CompileFile (File* file)
     if (strnicmp (string, #name, strlen(#name)) == 0)                   \
     {                                                                   \
         ParseArg (string + strlen(#name) + 1, opCode);                  \
+                                                                        \
     } else
 
 static int CompileOperation (const char* string)
@@ -101,7 +100,7 @@ static int CompileOperation (const char* string)
 
     while (string[0] == ' ') string++;      /// пропуск \t
 
-    if    (string[0] == 0)   return 0;
+    if    (string[0] == 0)   return 0;      // их уже не должно быть
 
     if    (string[0] == ':')
     {
@@ -125,13 +124,19 @@ static int CompileOperation (const char* string)
 #undef MAKE_COND_JMP
 
 #define DEF_REG(name, opCode)                                           \
-    if (strnicmp (string, #name, strlen(#name)) == 0)                   \
+    if (strnicmp (string, #name, strlen(#name)) == 0)               \
     {                                                                   \
         arg = opCode;                                                   \
         string += strlen(#name);                                        \
-    } else
+    }                     else
 
-static int ParseArg (const char* string, unsigned char opCode)
+
+
+// push [rax + 10]
+// Opcode_t opcode = switch () 0x23
+// mem rax 10
+//
+static int ParseArg (const char* string, unsigned char opCode) // typedef opcode_t
 {
     assert (string);
 
@@ -159,6 +164,7 @@ static int ParseArg (const char* string, unsigned char opCode)
 
         opCode |= T_ARG_CONST;
 
+// strtod / atoi / atod / stod
         while ((string[0] >= '0' && string[0] <= '9') ||
                 string[0] == ' ' || string[0] == '.')
         {
@@ -191,7 +197,7 @@ static int ParseArg (const char* string, unsigned char opCode)
         {
             str[ip++] = opCode;
 
-            if (opCode & T_ARG_CONST)
+            if (opCode & T_ARG_CONST) // IMM = immediate
             {
                 *(SPU_DATA_TYPE*)(str + ip) = arg;
                 ip += sizeof (SPU_DATA_TYPE);
@@ -205,19 +211,25 @@ static int ParseArg (const char* string, unsigned char opCode)
 
     if (opCode & T_ARG_CONST)
     {
-        *(SPU_DATA_TYPE*)(str + ip) = arg;
+        *(SPU_DATA_TYPE*)(str + ip) = arg; // emit
         ip += sizeof (SPU_DATA_TYPE);
     }
+
+// emit_imm()
+// emit_reg()
+// emit_opcode()
+// emit_byte()
 
     #include "include/STL_registers.h"
 
     /* else */ return ERROR_INCORRECT_VALUE;
 
+
     str[ip++] = (char)arg;
 
     if (opCode & T_ARG_RAM)
     {
-        while (string[0] == ' ') string++;
+        while (string[0] == ' ') string++; // SkipWhitespaces() isspace()
         if (string[0] != ']') return ERROR_INCORRECT_VALUE;
     }
 

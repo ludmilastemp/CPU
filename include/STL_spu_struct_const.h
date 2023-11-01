@@ -20,11 +20,11 @@ enum ArgType
 
 enum SPU_Error
 {
-    ERROR_INCORRECT_FUNC        = 1 << 0,
-    ERROR_INCORRECT_VALUE       = 1 << 1,
+    ERROR_EXIT                  = 1 << 0,
+    ERROR_NOT_MEMORY            = 1 << 1,
     ERROR_FILE_FORMAT           = 1 << 2,
-    ERROR_COMMAND_NAME_TOO_LONG = 1 << 3,
-    ERROR_NOT_MEMORY            = 1 << 4,
+    ERROR_INCORRECT_FUNC        = 1 << 3,
+    ERROR_INCORRECT_VALUE       = 1 << 4,
 };
 
 #endif /* STL_const_ */
