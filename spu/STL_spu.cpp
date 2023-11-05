@@ -1,4 +1,4 @@
-#include "include/STL_spu.h"
+#include "STL_spu.h"
 
 const int RAM_SIZE = 1000;
 
@@ -105,11 +105,11 @@ static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu)
 //    printf ("rbx = %d\n", spu->registers[2] / 100);
 //    printf ("\n\n\n");
 
-    struct Arg_t
-    {
-        SPU_DATA_TYPE value;
-        SPU_DATA_TYPE* location;
-    };
+//    struct Arg_t
+//    {
+//        SPU_DATA_TYPE value;
+//        SPU_DATA_TYPE* location;
+//    };
 
     SPU_DATA_TYPE arg = 0;
     int* argPtr = 0;
@@ -137,13 +137,11 @@ static int ExecuteCommand (const char* const str, int* ip, SPU_Struct* spu)
 
     // + : GetValue(arg1) + GetValue(arg2)
 
-
-
     switch (command & 0x1F) /// 00 01 11 11
     {
-        #include "include/STL_commands.h"
+        #include "../include/STL_commands.h"
 
-        #include "include/STL_jmp.h"
+        #include "../include/STL_jmp.h"
 
         default:
             printf ("I'm default\n");
@@ -172,7 +170,7 @@ static int DecodeArg (const char* const str, int* ip, int command,
     assert (arg);
     assert (argPtr);
 
-    if (command & T_ARG_CONST)
+    if (command & T_ARG_IMM)
     {
         *arg = *(const SPU_DATA_TYPE*)(str + *ip);
         *ip += sizeof (SPU_DATA_TYPE);
@@ -193,8 +191,8 @@ static int DecodeArg (const char* const str, int* ip, int command,
 
     if (command & T_ARG_RAM)
     {
-        *arg = ram[*arg / floatPrecision];
         *argPtr = &(ram[*arg / floatPrecision]);
+        *arg = ram[*arg / floatPrecision];
     }
 
     return 0;

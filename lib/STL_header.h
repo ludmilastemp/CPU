@@ -5,7 +5,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "STL_spu_struct_const.h"
+#include "../include/STL_spu_struct_const.h"
 
 struct STL_Header
 {

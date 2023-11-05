@@ -1,5 +1,5 @@
-#ifndef STL_const_
-#define STL_const_
+#ifndef STL_spu_struct_const_
+#define STL_spu_struct_const_
 
 #include <string.h>
 #include <stdio.h>
@@ -8,14 +8,21 @@ char*
 STL_SpuErrPrint (int err);
 
 typedef int SPU_DATA_TYPE;   /// не забудь поменять тип в стеке
+typedef unsigned char OPCODE_T;
 
 const int nRegisters = 8;
 
+struct NewString
+{
+    char* str;
+    int ip;
+};
+
 enum ArgType
 {
-    T_ARG_REG   = 0x20,  /// 1 << 5     32
-    T_ARG_RAM   = 0x40,  /// 1 << 6     64
-    T_ARG_CONST = 0x80,  /// 1 << 7     128
+    T_ARG_REG = 0x20,  /// 1 << 5     32
+    T_ARG_RAM = 0x40,  /// 1 << 6     64
+    T_ARG_IMM = 0x80,  /// 1 << 7     128
 };
 
 enum SPU_Error
@@ -27,4 +34,4 @@ enum SPU_Error
     ERROR_INCORRECT_VALUE       = 1 << 4,
 };
 
-#endif /* STL_const_ */
+#endif /* STL_spu_struct_const_ */

@@ -1,4 +1,4 @@
-#include "include/disasm.h"
+#include "disasm.h"
 
 static char* str = 0;
 static int index = 0;
@@ -93,9 +93,9 @@ int DisasmOperation (const char* const strBin, int* indexBin)
 
     switch (command & 0x1F)
     {
-        #include "include/STL_commands.h"
+        #include "../include/STL_commands.h"
 
-        #include "include/STL_jmp.h"
+        #include "../include/STL_jmp.h"
 
         default:
             printf ("I default\n");
@@ -121,7 +121,7 @@ static int PrintArg (const char* const strBin, int* indexBin, int command)
         str[index++] = '[';
     }
 
-    if (command & T_ARG_CONST)
+    if (command & T_ARG_IMM)
     {
         arg = (int)(*(const SPU_DATA_TYPE*)(strBin + *indexBin));
 

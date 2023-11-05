@@ -1,4 +1,4 @@
-#include "include/STL_spu_struct.h"
+#include "STL_spu_struct.h"
 
 static void STL_Print (const char* const fmt, ...);
 
@@ -59,7 +59,8 @@ STL_SpuStructDump (const SPU_Struct* spu)
     }
 }
 
-static void STL_Print (const char* const fmt, ...)
+static void
+STL_Print (const char* const fmt, ...)
 {
     assert   (fmt);
 

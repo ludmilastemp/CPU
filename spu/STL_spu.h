@@ -6,11 +6,11 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#include "STL_spu_struct_const.h"
-#include "STL_spu_const.h"
+#include "../include/STL_spu_struct_const.h"
+#include "../include/STL_spu_const.h"
 #include "STL_spu_struct.h"
-#include "STL_header.h"
-#include "STL_file_open.h"
+#include "../lib/STL_header.h"
+#include "../lib/STL_file_open.h"
 
 /**
  * Функция выполнения арифметический действий

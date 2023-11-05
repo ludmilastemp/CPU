@@ -3,6 +3,9 @@
         push 0
         pop rax
 
+        push 10
+        pop d3phys
+
 :loop1
         push rax
         push 20
@@ -12,6 +15,14 @@
         pop rbx
 
 :loop2
+        push rax
+        out
+        push rbx
+        out
+        push 111111111
+        out
+
+
         push rbx
         push 40
         je :stop_loop2
@@ -55,6 +66,10 @@
         push rbx
         add
         pop rcx
+
+        push rcx
+        out
+
         push 5
         pop [rcx]
 

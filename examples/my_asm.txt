@@ -1,0 +1,60 @@
+  6 		PUSH 0 
+ 11 		POP reg_1
+ 13 		PUSH 1000 
+ 18 		POP reg_3
+ 20 		PUSH reg_1
+ 22 		PUSH 2000 
+ 27 		JE 180 
+ 32 		PUSH 0 
+ 37 		POP reg_2
+ 39 		PUSH reg_1
+ 41 		OUT 
+ 42 		PUSH reg_2
+ 44 		OUT 
+ 45 		PUSH -2147483648 
+ 50 		OUT 
+ 51 		PUSH reg_2
+ 53 		PUSH 4000 
+ 58 		JE 167 
+ 63 		PUSH reg_1
+ 65 		PUSH 1000 
+ 70 		SUB 
+ 71 		PUSH reg_1
+ 73 		PUSH 1000 
+ 78 		SUB 
+ 79 		MUL 
+ 80 		PUSH 100 
+ 85 		DIV 
+ 86 		PUSH reg_2
+ 88 		PUSH 2000 
+ 93 		SUB 
+ 94 		PUSH reg_2
+ 96 		PUSH 2000 
+101 		SUB 
+102 		MUL 
+103 		PUSH 400 
+108 		DIV 
+109 		ADD 
+110 		PUSH 800 
+115 		PUSH 800 
+120 		MUL 
+121 		JBE 131 
+126 		JMP 154 
+131 		PUSH 4000 
+136 		PUSH reg_1
+138 		MUL 
+139 		PUSH reg_2
+141 		ADD 
+142 		POP reg_6
+144 		PUSH reg_6
+146 		OUT 
+147 		PUSH 500 
+152 		POP [reg_6]
+154 		PUSH 100 reg_2
+160 		POP reg_2
+162 		JMP 39 
+167 		PUSH 100 reg_1
+173 		POP reg_1
+175 		JMP 20 
+180 		HLT 
+181 

@@ -6,13 +6,14 @@
 #include <assert.h>
 #include <stdarg.h>
 
-#include "Stack_1type/STL_stack.h"
-#include "STL_spu_struct_const.h"
-#include "STL_spu_const.h"
+#include "../lib/STL_stack/STACK_FILE_TYPE_int.h"
+#include "../lib/STL_stack/generic.h"
+#include "../include/STL_spu_struct_const.h"
+#include "../include/STL_spu_const.h"
 
 struct SPU_Struct
 {
-    struct Stack stk;
+    struct Stack_int stk;
     SPU_DATA_TYPE registers[nRegisters];
     int err;
 };
